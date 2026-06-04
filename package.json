@@ -1,0 +1,18 @@
+{
+  "scripts": {
+    "dev": "vite",
+    "build": "vite build",
+    "preview": "vite preview"
+  },
+  "dependencies": {
+    "@vitejs/plugin-react": "latest",
+    "firebase": "^12.14.0",
+    "framer-motion": "^12.40.0",
+    "react": "latest",
+    "react-dom": "latest",
+    "react-router-dom": "latest",
+    "three": "^0.184.0",
+    "vite": "latest"
+  },
+  "type": "module"
+}

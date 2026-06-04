@@ -1,0 +1,5 @@
+import { motion } from 'framer-motion';
+import basket from '../../assets/basket.png';
+import bgc from '../../assets/bgc.png';
+import './Cta.css';
+export default function Cta({whatsappNumber}){return <motion.section className="cta" id="gallery" initial={{ opacity: 0, y: 34 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true, amount: .3 }} transition={{ duration: .55 }}><motion.img src={basket} className="basket" alt="Fruit basket" animate={{ rotate: [0, -2, 2, 0] }} transition={{ duration: 6, repeat: Infinity, ease: 'easeInOut' }}/><div className="cta-text"><p className="script">Craving Something Fresh?</p><h2>Order Now on WhatsApp</h2><span>Quick, Easy & Reliable</span></div><motion.a whileHover={{ scale: 1.05 }} whileTap={{ scale: .96 }} className="whatsapp cta-btn" href={`https://wa.me/${whatsappNumber}?text=Hi%20I%20want%20fresh%20juice`} target="_blank"><i className="fa-brands fa-whatsapp"></i> Order Now</motion.a><img src={bgc} className="lake" alt="Kashmir lake"/></motion.section>}
