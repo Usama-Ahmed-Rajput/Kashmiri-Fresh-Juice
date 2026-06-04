@@ -179,6 +179,7 @@ export default function Admin(){
   <option value="Fresh Juice">Fresh Juice</option>
   <option value="Seasonal Juice">Seasonal Juice</option>
   <option value="Smoothie">Smoothie</option>
+  <option value="Mint Juice">Mint Juice</option>
 </select>
       <input placeholder="Description" value={form.description} onChange={e=>setForm({...form,description:e.target.value})} required/>
       <input type="number" placeholder="Price" value={form.price} onChange={e=>setForm({...form,price:e.target.value})} required/>
