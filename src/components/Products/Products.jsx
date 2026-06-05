@@ -31,7 +31,6 @@ export default function Products({ products, addToCart }) {
     const flyingImg = document.createElement('img');
     flyingImg.src = product.image;
     flyingImg.className = 'fly-cart-img';
-
     flyingImg.style.left = `${imgRect.left}px`;
     flyingImg.style.top = `${imgRect.top}px`;
     flyingImg.style.width = `${imgRect.width}px`;
@@ -52,24 +51,25 @@ export default function Products({ products, addToCart }) {
         {
           left: `${cartRect.left + cartRect.width / 2}px`,
           top: `${cartRect.top + cartRect.height / 2}px`,
-          width: '25px',
-          height: '25px',
-          opacity: 0.2,
+          width: '28px',
+          height: '28px',
+          opacity: 0.25,
           transform: 'rotate(360deg) scale(0.25)',
         },
       ],
       {
-        duration: 750,
-        easing: 'cubic-bezier(.2,.8,.2,1)',
+        duration: 1300,
+        easing: 'cubic-bezier(.25,.8,.25,1)',
       }
     );
 
     setTimeout(() => {
       flyingImg.remove();
       addToCart(product);
+
       cartBtn.classList.add('cart-bounce');
       setTimeout(() => cartBtn.classList.remove('cart-bounce'), 450);
-    }, 720);
+    }, 1280);
   };
 
   return (
@@ -82,9 +82,22 @@ export default function Products({ products, addToCart }) {
       viewport={{ once: true, amount: 0.18 }}
       transition={{ duration: 0.45 }}
     >
-      <motion.p className="script">Our Special <i className="fa-solid fa-seedling"></i></motion.p>
+      <motion.p
+        className="script"
+        initial={{ opacity: 0, y: 20 }}
+        whileInView={{ opacity: 1, y: 0 }}
+        viewport={{ once: true }}
+        transition={{ duration: 0.45 }}
+      >
+        Our Special <i className="fa-solid fa-seedling"></i>
+      </motion.p>
 
-      <motion.h2>
+      <motion.h2
+        initial={{ opacity: 0, y: 24 }}
+        whileInView={{ opacity: 1, y: 0 }}
+        viewport={{ once: true }}
+        transition={{ duration: 0.5 }}
+      >
         Popular <span>Menu</span>
       </motion.h2>
 
@@ -100,6 +113,7 @@ export default function Products({ products, addToCart }) {
             viewport={{ once: true, amount: 0.25 }}
           >
             <span className="card-bg-circle"></span>
+
             <label>{product.badge || 'FRESH'}</label>
 
             <div className="product-img-wrap">
