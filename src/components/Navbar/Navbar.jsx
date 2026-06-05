@@ -1,4 +1,3 @@
-import { Link } from "react-router-dom";
 import "./Navbar.css";
 
 export default function Navbar({ cartCount, onCartClick, whatsappNumber }) {
@@ -19,7 +18,6 @@ export default function Navbar({ cartCount, onCartClick, whatsappNumber }) {
         <a href="#benefits">Benefits</a>
         <a href="#gallery">Gallery</a>
         <a href="#contact">Contact</a>
-        {/* <Link to="/admin">Admin</Link> */}
       </div>
 
       <div className="nav-actions">
