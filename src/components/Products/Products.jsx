@@ -17,7 +17,7 @@ export default function Products({ products, addToCart }) {
 
   const flyToCart = (product, e) => {
     const card = e.currentTarget.closest('.card');
-    const productImg = card.querySelector('img');
+    const productImg = card?.querySelector('img');
     const cartBtn = document.querySelector('.cart-top');
 
     if (!productImg || !cartBtn) {
@@ -26,10 +26,12 @@ export default function Products({ products, addToCart }) {
     }
 
     const imgRect = productImg.getBoundingClientRect();
+    const cartRect = cartBtn.getBoundingClientRect();
 
     const flyingImg = document.createElement('img');
     flyingImg.src = product.image;
     flyingImg.className = 'fly-cart-img';
+
     flyingImg.style.left = `${imgRect.left}px`;
     flyingImg.style.top = `${imgRect.top}px`;
     flyingImg.style.width = `${imgRect.width}px`;
@@ -37,49 +39,39 @@ export default function Products({ products, addToCart }) {
 
     document.body.appendChild(flyingImg);
 
-    cartBtn.scrollIntoView({
-      behavior: 'smooth',
-      block: 'center',
-      inline: 'center',
-    });
+    flyingImg.animate(
+      [
+        {
+          left: `${imgRect.left}px`,
+          top: `${imgRect.top}px`,
+          width: `${imgRect.width}px`,
+          height: `${imgRect.height}px`,
+          opacity: 1,
+          transform: 'rotate(0deg) scale(1)',
+        },
+        {
+          left: `${cartRect.left + cartRect.width / 2 - 15}px`,
+          top: `${cartRect.top + cartRect.height / 2 - 15}px`,
+          width: '30px',
+          height: '30px',
+          opacity: 0.2,
+          transform: 'rotate(360deg) scale(0.25)',
+        },
+      ],
+      {
+        duration: 900,
+        easing: 'cubic-bezier(.25,.8,.25,1)',
+        fill: 'forwards',
+      }
+    );
 
     setTimeout(() => {
-      const cartRect = cartBtn.getBoundingClientRect();
+      flyingImg.remove();
+      addToCart(product);
 
-      flyingImg.animate(
-        [
-          {
-            left: `${imgRect.left}px`,
-            top: `${imgRect.top}px`,
-            width: `${imgRect.width}px`,
-            height: `${imgRect.height}px`,
-            opacity: 1,
-            transform: 'rotate(0deg) scale(1)',
-          },
-          {
-            left: `${cartRect.left + cartRect.width / 2 - 15}px`,
-            top: `${cartRect.top + cartRect.height / 2 - 15}px`,
-            width: '30px',
-            height: '30px',
-            opacity: 0.2,
-            transform: 'rotate(360deg) scale(0.25)',
-          },
-        ],
-        {
-          duration: 1300,
-          easing: 'cubic-bezier(.25,.8,.25,1)',
-          fill: 'forwards',
-        }
-      );
-
-      setTimeout(() => {
-        flyingImg.remove();
-        addToCart(product);
-
-        cartBtn.classList.add('cart-bounce');
-        setTimeout(() => cartBtn.classList.remove('cart-bounce'), 450);
-      }, 1280);
-    }, 650);
+      cartBtn.classList.add('cart-bounce');
+      setTimeout(() => cartBtn.classList.remove('cart-bounce'), 450);
+    }, 880);
   };
 
   return (
@@ -140,7 +132,11 @@ export default function Products({ products, addToCart }) {
         ))}
       </div>
 
-      <motion.div whileHover={{ scale: 1.04 }} whileTap={{ scale: 0.97 }} className="full-menu-wrap">
+      <motion.div
+        whileHover={{ scale: 1.04 }}
+        whileTap={{ scale: 0.97 }}
+        className="full-menu-wrap"
+      >
         <Link className="full-menu" to="/all-products">
           <i className="fa-solid fa-grip"></i> View Full Menu
         </Link>
