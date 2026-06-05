@@ -173,3 +173,30 @@
     height: 240px;
   }
 }
+
+.fly-cart-img {
+  position: fixed;
+  object-fit: contain;
+  z-index: 99999;
+  pointer-events: none;
+  filter: drop-shadow(0 18px 20px rgba(0, 0, 0, 0.8));
+}
+
+.cart-bounce {
+  animation: cartBounce 0.45s ease;
+}
+
+@keyframes cartBounce {
+  0% {
+    transform: scale(1);
+  }
+  35% {
+    transform: scale(1.28);
+  }
+  70% {
+    transform: scale(0.92);
+  }
+  100% {
+    transform: scale(1);
+  }
+}
