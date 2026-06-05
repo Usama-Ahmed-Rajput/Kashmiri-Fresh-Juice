@@ -1,4 +1,3 @@
-```jsx
 import { Link } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import orangeImg from '../../assets/orange.png';
@@ -75,7 +74,6 @@ export default function Products({ products, addToCart }) {
 
     setTimeout(() => {
       flyingImg.remove();
-
       addToCart(product);
 
       cartBtn.classList.add('cart-bounce');
@@ -166,4 +164,3 @@ export default function Products({ products, addToCart }) {
     </motion.section>
   );
 }
-```
