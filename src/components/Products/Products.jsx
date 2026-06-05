@@ -17,7 +17,7 @@ export default function Products({ products, addToCart }) {
 
   const flyToCart = (product, e) => {
     const card = e.currentTarget.closest('.card');
-    const productImg = card.querySelector('.product-img-wrap img');
+    const productImg = card.querySelector('.card-img');
     const cartBtn = document.querySelector('.cart-top');
 
     if (!productImg || !cartBtn) {
@@ -26,7 +26,6 @@ export default function Products({ products, addToCart }) {
     }
 
     const imgRect = productImg.getBoundingClientRect();
-    const cartRect = cartBtn.getBoundingClientRect();
 
     const flyingImg = document.createElement('img');
     flyingImg.src = product.image;
@@ -38,38 +37,49 @@ export default function Products({ products, addToCart }) {
 
     document.body.appendChild(flyingImg);
 
-    flyingImg.animate(
-      [
-        {
-          left: `${imgRect.left}px`,
-          top: `${imgRect.top}px`,
-          width: `${imgRect.width}px`,
-          height: `${imgRect.height}px`,
-          opacity: 1,
-          transform: 'rotate(0deg) scale(1)',
-        },
-        {
-          left: `${cartRect.left + cartRect.width / 2}px`,
-          top: `${cartRect.top + cartRect.height / 2}px`,
-          width: '28px',
-          height: '28px',
-          opacity: 0.25,
-          transform: 'rotate(360deg) scale(0.25)',
-        },
-      ],
-      {
-        duration: 1300,
-        easing: 'cubic-bezier(.25,.8,.25,1)',
-      }
-    );
+    cartBtn.scrollIntoView({
+      behavior: 'smooth',
+      block: 'center',
+      inline: 'center',
+    });
 
     setTimeout(() => {
-      flyingImg.remove();
-      addToCart(product);
+      const cartRect = cartBtn.getBoundingClientRect();
 
-      cartBtn.classList.add('cart-bounce');
-      setTimeout(() => cartBtn.classList.remove('cart-bounce'), 450);
-    }, 1280);
+      flyingImg.animate(
+        [
+          {
+            left: `${imgRect.left}px`,
+            top: `${imgRect.top}px`,
+            width: `${imgRect.width}px`,
+            height: `${imgRect.height}px`,
+            opacity: 1,
+            transform: 'rotate(0deg) scale(1)',
+          },
+          {
+            left: `${cartRect.left + cartRect.width / 2 - 15}px`,
+            top: `${cartRect.top + cartRect.height / 2 - 15}px`,
+            width: '30px',
+            height: '30px',
+            opacity: 0.2,
+            transform: 'rotate(360deg) scale(0.25)',
+          },
+        ],
+        {
+          duration: 1300,
+          easing: 'cubic-bezier(.25,.8,.25,1)',
+          fill: 'forwards',
+        }
+      );
+
+      setTimeout(() => {
+        flyingImg.remove();
+        addToCart(product);
+
+        cartBtn.classList.add('cart-bounce');
+        setTimeout(() => cartBtn.classList.remove('cart-bounce'), 450);
+      }, 1280);
+    }, 650);
   };
 
   return (
@@ -111,27 +121,23 @@ export default function Products({ products, addToCart }) {
             initial="hidden"
             whileInView="visible"
             viewport={{ once: true, amount: 0.25 }}
+            whileHover={{ y: -10, scale: 1.015 }}
+            transition={{ type: 'spring', stiffness: 220, damping: 18 }}
           >
-            <span className="card-bg-circle"></span>
-
             <label>{product.badge || 'FRESH'}</label>
 
-            <div className="product-img-wrap">
-              <img src={product.image} alt={product.name} />
-            </div>
+            <img className="card-img" src={product.image} alt={product.name} />
 
-            <div className="product-content">
-              <h3>{product.name}</h3>
-              <p>{product.description}</p>
-              <strong>Rs. {product.price}</strong>
+            <h3>{product.name}</h3>
+            <p>{product.description}</p>
+            <strong>Rs. {product.price}</strong>
 
-              <motion.button
-                whileTap={{ scale: 0.96 }}
-                onClick={(e) => flyToCart(product, e)}
-              >
-                <i className="fa-solid fa-cart-plus"></i> Add to Cart
-              </motion.button>
-            </div>
+            <motion.button
+              whileTap={{ scale: 0.96 }}
+              onClick={(e) => flyToCart(product, e)}
+            >
+              <i className="fa-solid fa-cart-plus"></i> Add to Cart
+            </motion.button>
           </motion.article>
         ))}
       </div>
