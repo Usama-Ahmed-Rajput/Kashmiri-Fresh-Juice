@@ -55,7 +55,7 @@ export default function Products({ products, addToCart }) {
             whileInView="visible"
             viewport={{ once: true, amount: 0.25 }}
           >
-            <span className="card-bg-circle"></span>
+            <span className="card-glow"></span>
 
             <label>{product.badge || 'FRESH'}</label>
 
