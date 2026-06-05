@@ -30,10 +30,10 @@ export default function Products({ products, addToCart }) {
     }
 
     const imgRect = productImg.getBoundingClientRect();
-    const cartRect = cartBtn.getBoundingClientRect();
 
     const isMobile = window.innerWidth <= 600;
-    const animationDuration = isMobile ? 3500 : 3000;
+    const animationDuration = isMobile ? 2500 : 2000;
+    const scrollDelay = isMobile ? 800 : 650;
 
     const flyingImg = document.createElement('img');
     flyingImg.src = product.image;
@@ -46,31 +46,41 @@ export default function Products({ products, addToCart }) {
 
     document.body.appendChild(flyingImg);
 
-    flyingImg.animate(
-      [
+    cartBtn.scrollIntoView({
+      behavior: 'smooth',
+      block: 'start',
+      inline: 'nearest',
+    });
+
+    setTimeout(() => {
+      const updatedCartRect = cartBtn.getBoundingClientRect();
+
+      flyingImg.animate(
+        [
+          {
+            left: `${imgRect.left}px`,
+            top: `${imgRect.top}px`,
+            width: `${imgRect.width}px`,
+            height: `${imgRect.height}px`,
+            opacity: 1,
+            transform: 'rotate(0deg) scale(1)',
+          },
+          {
+            left: `${updatedCartRect.left + updatedCartRect.width / 2 - 15}px`,
+            top: `${updatedCartRect.top + updatedCartRect.height / 2 - 15}px`,
+            width: '30px',
+            height: '30px',
+            opacity: 0.2,
+            transform: 'rotate(360deg) scale(0.25)',
+          },
+        ],
         {
-          left: `${imgRect.left}px`,
-          top: `${imgRect.top}px`,
-          width: `${imgRect.width}px`,
-          height: `${imgRect.height}px`,
-          opacity: 1,
-          transform: 'rotate(0deg) scale(1)',
-        },
-        {
-          left: `${cartRect.left + cartRect.width / 2 - 15}px`,
-          top: `${cartRect.top + cartRect.height / 2 - 15}px`,
-          width: '30px',
-          height: '30px',
-          opacity: 0.2,
-          transform: 'rotate(360deg) scale(0.25)',
-        },
-      ],
-      {
-        duration: animationDuration,
-        easing: 'cubic-bezier(0.22, 1, 0.36, 1)',
-        fill: 'forwards',
-      }
-    );
+          duration: animationDuration,
+          easing: 'cubic-bezier(0.22, 1, 0.36, 1)',
+          fill: 'forwards',
+        }
+      );
+    }, scrollDelay);
 
     setTimeout(() => {
       flyingImg.remove();
@@ -81,7 +91,7 @@ export default function Products({ products, addToCart }) {
       setTimeout(() => {
         cartBtn.classList.remove('cart-bounce');
       }, 450);
-    }, animationDuration);
+    }, animationDuration + scrollDelay);
   };
 
   return (
