@@ -1,3 +1,4 @@
+```jsx
 import { Link } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import orangeImg from '../../assets/orange.png';
@@ -8,7 +9,11 @@ const cardVariants = {
   visible: (index) => ({
     opacity: 1,
     y: 0,
-    transition: { duration: 0.5, delay: index * 0.08, ease: 'easeOut' },
+    transition: {
+      duration: 0.5,
+      delay: index * 0.08,
+      ease: 'easeOut',
+    },
   }),
 };
 
@@ -29,7 +34,7 @@ export default function Products({ products, addToCart }) {
     const cartRect = cartBtn.getBoundingClientRect();
 
     const isMobile = window.innerWidth <= 600;
-    const animationDuration = isMobile ? 1500 : 900;
+    const animationDuration = isMobile ? 3500 : 3000;
 
     const flyingImg = document.createElement('img');
     flyingImg.src = product.image;
@@ -63,18 +68,22 @@ export default function Products({ products, addToCart }) {
       ],
       {
         duration: animationDuration,
-        easing: 'cubic-bezier(.25,.8,.25,1)',
+        easing: 'cubic-bezier(0.22, 1, 0.36, 1)',
         fill: 'forwards',
       }
     );
 
     setTimeout(() => {
       flyingImg.remove();
+
       addToCart(product);
 
       cartBtn.classList.add('cart-bounce');
-      setTimeout(() => cartBtn.classList.remove('cart-bounce'), 450);
-    }, animationDuration - 20);
+
+      setTimeout(() => {
+        cartBtn.classList.remove('cart-bounce');
+      }, 450);
+    }, animationDuration);
   };
 
   return (
@@ -117,33 +126,44 @@ export default function Products({ products, addToCart }) {
             whileInView="visible"
             viewport={{ once: true, amount: 0.25 }}
             whileHover={{ y: -10, scale: 1.015 }}
-            transition={{ type: 'spring', stiffness: 220, damping: 18 }}
+            transition={{
+              type: 'spring',
+              stiffness: 220,
+              damping: 18,
+            }}
           >
             <label>{product.badge || 'FRESH'}</label>
+
             <img src={product.image} alt={product.name} />
+
             <h3>{product.name}</h3>
+
             <p>{product.description}</p>
+
             <strong>Rs. {product.price}</strong>
 
             <motion.button
               whileTap={{ scale: 0.96 }}
               onClick={(e) => flyToCart(product, e)}
             >
-              <i className="fa-solid fa-cart-plus"></i> Add to Cart
+              <i className="fa-solid fa-cart-plus"></i>
+              Add to Cart
             </motion.button>
           </motion.article>
         ))}
       </div>
 
       <motion.div
+        className="full-menu-wrap"
         whileHover={{ scale: 1.04 }}
         whileTap={{ scale: 0.97 }}
-        className="full-menu-wrap"
       >
         <Link className="full-menu" to="/all-products">
-          <i className="fa-solid fa-grip"></i> View Full Menu
+          <i className="fa-solid fa-grip"></i>
+          View Full Menu
         </Link>
       </motion.div>
     </motion.section>
   );
 }
+```
