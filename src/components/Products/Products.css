@@ -16,7 +16,6 @@
   position: absolute;
   background: var(--orange) center/contain no-repeat;
   opacity: 0.9;
-  pointer-events: none;
 }
 
 .popular:before {
@@ -111,32 +110,24 @@
   padding: 7px 17px;
   font-size: 11px;
   font-weight: 900;
-  position: relative;
-  z-index: 2;
 }
 
-.card-img {
+.card img {
   width: 100%;
   height: 250px;
   object-fit: contain;
   margin: 0 0 2px;
   filter: drop-shadow(0 13px 16px #000);
-  position: relative;
-  z-index: 2;
 }
 
 .card h3 {
   font-size: 21px;
-  position: relative;
-  z-index: 2;
 }
 
 .card p {
   font-size: 14px;
   color: #eefbdc;
   margin-top: 5px;
-  position: relative;
-  z-index: 2;
 }
 
 .card strong {
@@ -144,8 +135,6 @@
   color: #8de03b;
   font-size: 20px;
   margin: 8px 0 14px;
-  position: relative;
-  z-index: 2;
 }
 
 .card button {
@@ -180,15 +169,12 @@
   0% {
     transform: scale(1);
   }
-
   35% {
     transform: scale(1.28);
   }
-
   70% {
     transform: scale(0.92);
   }
-
   100% {
     transform: scale(1);
   }
@@ -236,7 +222,7 @@
     grid-template-columns: repeat(4, minmax(300px, 1fr));
   }
 
-  .card-img {
+  .card img {
     height: 240px;
   }
 }
