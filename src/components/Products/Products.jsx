@@ -28,6 +28,9 @@ export default function Products({ products, addToCart }) {
     const imgRect = productImg.getBoundingClientRect();
     const cartRect = cartBtn.getBoundingClientRect();
 
+    const isMobile = window.innerWidth <= 600;
+    const animationDuration = isMobile ? 1500 : 900;
+
     const flyingImg = document.createElement('img');
     flyingImg.src = product.image;
     flyingImg.className = 'fly-cart-img';
@@ -59,7 +62,7 @@ export default function Products({ products, addToCart }) {
         },
       ],
       {
-        duration: 900,
+        duration: animationDuration,
         easing: 'cubic-bezier(.25,.8,.25,1)',
         fill: 'forwards',
       }
@@ -71,7 +74,7 @@ export default function Products({ products, addToCart }) {
 
       cartBtn.classList.add('cart-bounce');
       setTimeout(() => cartBtn.classList.remove('cart-bounce'), 450);
-    }, 880);
+    }, animationDuration - 20);
   };
 
   return (
