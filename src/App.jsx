@@ -17,10 +17,16 @@ export default function App() {
   const location = useLocation();
 
   const [products, setProducts] = useState([]);
+
   const [cart, setCart] = useState(() => {
-    const savedCart = localStorage.getItem('kfj-cart');
-    return savedCart ? JSON.parse(savedCart) : [];
+    try {
+      const savedCart = localStorage.getItem('kfj-cart');
+      return savedCart ? JSON.parse(savedCart) : [];
+    } catch {
+      return [];
+    }
   });
+
   const [cartOpen, setCartOpen] = useState(false);
 
   useEffect(() => {
@@ -40,10 +46,16 @@ export default function App() {
 
       try {
         const firebaseProducts = await getFirebaseProducts();
-        if (active && firebaseProducts.length) setProducts(firebaseProducts);
+
+        if (active && firebaseProducts.length) {
+          setProducts(firebaseProducts);
+        }
       } catch (error) {
         console.warn('Firebase products load failed:', error.message);
-        if (active) setProducts(fallbackProducts);
+
+        if (active) {
+          setProducts(fallbackProducts);
+        }
       }
     }
 
@@ -58,10 +70,9 @@ export default function App() {
     };
   }, []);
 
-  const totalItems = useMemo(
-    () => cart.reduce((sum, item) => sum + item.qty, 0),
-    [cart]
-  );
+  const totalItems = useMemo(() => {
+    return cart.reduce((sum, item) => sum + item.qty, 0);
+  }, [cart]);
 
   const addToCart = (product) => {
     setCart((prev) => {
@@ -77,6 +88,8 @@ export default function App() {
 
       return [...prev, { ...product, qty: 1 }];
     });
+
+    // Cart drawer Add to Cart par open nahi hoga
   };
 
   const changeQty = (id, delta) => {
@@ -107,7 +120,13 @@ export default function App() {
       .map((item) => `• ${item.name} x ${item.qty} = Rs. ${item.price * item.qty}`)
       .join('%0A');
 
-    const message = `Hi Kashmiri Fresh Juices,%0AI want to place an order.%0A%0AName: ${encodeURIComponent(customer.name)}%0APhone: ${encodeURIComponent(customer.phone)}%0AAddress: ${encodeURIComponent(customer.address)}%0A%0AOrder:%0A${items}%0A%0ATotal: Rs. ${total}`;
+    const message = `Hi Kashmiri Fresh Juices,%0AI want to place an order.%0A%0AName: ${encodeURIComponent(
+      customer.name
+    )}%0APhone: ${encodeURIComponent(
+      customer.phone
+    )}%0AAddress: ${encodeURIComponent(
+      customer.address
+    )}%0A%0AOrder:%0A${items}%0A%0ATotal: Rs. ${total}`;
 
     window.open(`https://wa.me/${WHATSAPP_NUMBER}?text=${message}`, '_blank');
 
@@ -125,7 +144,12 @@ export default function App() {
       />
 
       <Hero whatsappNumber={WHATSAPP_NUMBER} />
-      <Products products={products} addToCart={addToCart} />
+
+      <Products
+        products={products}
+        addToCart={addToCart}
+      />
+
       <About />
       <Cta whatsappNumber={WHATSAPP_NUMBER} />
       <ContactMap whatsappNumber={WHATSAPP_NUMBER} />
