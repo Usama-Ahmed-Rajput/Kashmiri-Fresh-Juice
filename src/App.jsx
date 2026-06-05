@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useState } from 'react';
+import { useLocation } from 'react-router-dom';
 import Navbar from './components/Navbar/Navbar';
 import Hero from './components/Hero/Hero';
 import Products from './components/Products/Products';
@@ -13,9 +14,22 @@ import { getFirebaseProducts, saveFirebaseOrder } from './firebase/firebaseApi';
 const WHATSAPP_NUMBER = import.meta.env.VITE_WHATSAPP_NUMBER || '923079970288';
 
 export default function App() {
+  const location = useLocation();
+
   const [products, setProducts] = useState([]);
-  const [cart, setCart] = useState([]);
+  const [cart, setCart] = useState(() => {
+    const savedCart = localStorage.getItem('kfj-cart');
+    return savedCart ? JSON.parse(savedCart) : [];
+  });
   const [cartOpen, setCartOpen] = useState(false);
+
+  useEffect(() => {
+    localStorage.setItem('kfj-cart', JSON.stringify(cart));
+  }, [cart]);
+
+  useEffect(() => {
+    setCartOpen(false);
+  }, [location.pathname]);
 
   useEffect(() => {
     let active = true;
@@ -63,9 +77,6 @@ export default function App() {
 
       return [...prev, { ...product, qty: 1 }];
     });
-
-    // Cart drawer yahan open nahi hoga
-    // Cart sirf navbar ke cart icon par click karne se open hoga
   };
 
   const changeQty = (id, delta) => {
@@ -101,6 +112,7 @@ export default function App() {
     window.open(`https://wa.me/${WHATSAPP_NUMBER}?text=${message}`, '_blank');
 
     setCart([]);
+    localStorage.removeItem('kfj-cart');
     setCartOpen(false);
   };
 
