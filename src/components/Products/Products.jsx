@@ -17,7 +17,7 @@ export default function Products({ products, addToCart }) {
 
   const flyToCart = (product, e) => {
     const card = e.currentTarget.closest('.card');
-    const productImg = card.querySelector('.card-img');
+    const productImg = card.querySelector('img');
     const cartBtn = document.querySelector('.cart-top');
 
     if (!productImg || !cartBtn) {
@@ -125,9 +125,7 @@ export default function Products({ products, addToCart }) {
             transition={{ type: 'spring', stiffness: 220, damping: 18 }}
           >
             <label>{product.badge || 'FRESH'}</label>
-
-            <img className="card-img" src={product.image} alt={product.name} />
-
+            <img src={product.image} alt={product.name} />
             <h3>{product.name}</h3>
             <p>{product.description}</p>
             <strong>Rs. {product.price}</strong>
