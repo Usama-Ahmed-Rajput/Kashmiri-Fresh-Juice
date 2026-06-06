@@ -8,6 +8,11 @@ import Cta from './components/Cta/Cta';
 import ContactMap from './components/ContactMap/ContactMap';
 import Footer from './components/Footer/Footer';
 import Cart from './components/Cart/Cart';
+import Loader from './components/Loader/Loader';
+import CustomCursor from './components/CustomCursor/CustomCursor';
+import Stats from './components/Stats/Stats';
+import Testimonials from './components/Testimonials/Testimonials';
+import StickyOrder from './components/StickyOrder/StickyOrder';
 import { getProducts } from './utils/storage';
 import { getFirebaseProducts, saveFirebaseOrder } from './firebase/firebaseApi';
 
@@ -15,8 +20,8 @@ const WHATSAPP_NUMBER = import.meta.env.VITE_WHATSAPP_NUMBER || '923079970288';
 
 export default function App() {
   const location = useLocation();
-
   const [products, setProducts] = useState([]);
+  const [showLoader, setShowLoader] = useState(true);
 
   const [cart, setCart] = useState(() => {
     try {
@@ -28,6 +33,11 @@ export default function App() {
   });
 
   const [cartOpen, setCartOpen] = useState(false);
+
+  useEffect(() => {
+    const timer = setTimeout(() => setShowLoader(false), 1500);
+    return () => clearTimeout(timer);
+  }, []);
 
   useEffect(() => {
     localStorage.setItem('kfj-cart', JSON.stringify(cart));
@@ -46,16 +56,10 @@ export default function App() {
 
       try {
         const firebaseProducts = await getFirebaseProducts();
-
-        if (active && firebaseProducts.length) {
-          setProducts(firebaseProducts);
-        }
+        if (active && firebaseProducts.length) setProducts(firebaseProducts);
       } catch (error) {
         console.warn('Firebase products load failed:', error.message);
-
-        if (active) {
-          setProducts(fallbackProducts);
-        }
+        if (active) setProducts(fallbackProducts);
       }
     }
 
@@ -70,9 +74,7 @@ export default function App() {
     };
   }, []);
 
-  const totalItems = useMemo(() => {
-    return cart.reduce((sum, item) => sum + item.qty, 0);
-  }, [cart]);
+  const totalItems = useMemo(() => cart.reduce((sum, item) => sum + item.qty, 0), [cart]);
 
   const addToCart = (product) => {
     setCart((prev) => {
@@ -80,24 +82,18 @@ export default function App() {
 
       if (existing) {
         return prev.map((item) =>
-          item.id === product.id
-            ? { ...item, qty: item.qty + 1 }
-            : item
+          item.id === product.id ? { ...item, qty: item.qty + 1 } : item
         );
       }
 
       return [...prev, { ...product, qty: 1 }];
     });
-
-    // Cart drawer Add to Cart par open nahi hoga
   };
 
   const changeQty = (id, delta) => {
     setCart((prev) =>
       prev.map((item) =>
-        item.id === id
-          ? { ...item, qty: Math.max(1, item.qty + delta) }
-          : item
+        item.id === id ? { ...item, qty: Math.max(1, item.qty + delta) } : item
       )
     );
   };
@@ -137,6 +133,9 @@ export default function App() {
 
   return (
     <main className="page">
+      {showLoader && <Loader />}
+      <CustomCursor />
+
       <Navbar
         cartCount={totalItems}
         onCartClick={() => setCartOpen(true)}
@@ -145,15 +144,16 @@ export default function App() {
 
       <Hero whatsappNumber={WHATSAPP_NUMBER} />
 
-      <Products
-        products={products}
-        addToCart={addToCart}
-      />
+      <Products products={products} addToCart={addToCart} />
 
+      <Stats />
       <About />
+      <Testimonials />
       <Cta whatsappNumber={WHATSAPP_NUMBER} />
       <ContactMap whatsappNumber={WHATSAPP_NUMBER} />
       <Footer whatsappNumber={WHATSAPP_NUMBER} />
+
+      <StickyOrder whatsappNumber={WHATSAPP_NUMBER} />
 
       <Cart
         open={cartOpen}
