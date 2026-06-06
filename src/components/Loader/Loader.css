@@ -6,117 +6,32 @@
   place-items: center;
   overflow: hidden;
   background:
-    radial-gradient(circle at 50% 22%, rgba(255, 166, 0, .22), transparent 32%),
-    radial-gradient(circle at 20% 80%, rgba(142, 224, 59, .22), transparent 30%),
+    radial-gradient(circle at 50% 28%, rgba(255, 170, 0, 0.28), transparent 35%),
+    radial-gradient(circle at 50% 70%, rgba(142, 226, 53, 0.18), transparent 35%),
     linear-gradient(135deg, #020802, #001706 55%, #000);
-  animation: loaderOut 3.4s ease forwards;
-}
-
-.loader-orb {
-  position: absolute;
-  width: 260px;
-  height: 260px;
-  border-radius: 50%;
-  filter: blur(30px);
-  opacity: .28;
-  animation: orbMove 5s ease-in-out infinite;
-}
-
-.orb-1 {
-  background: #ff9f1c;
-  top: 10%;
-  left: 12%;
-}
-
-.orb-2 {
-  background: #8de03b;
-  right: 10%;
-  bottom: 12%;
-  animation-delay: 1s;
+  animation: loaderOut 3.2s ease forwards;
 }
 
 .loader-card {
   width: 92%;
-  max-width: 380px;
-  padding: 30px 24px 28px;
+  max-width: 390px;
   text-align: center;
+  padding: 18px 22px 28px;
   border-radius: 34px;
-  position: relative;
-  background: linear-gradient(180deg, rgba(255,255,255,.13), rgba(255,255,255,.05));
-  border: 1px solid rgba(255,255,255,.16);
-  box-shadow: 0 35px 110px rgba(0,0,0,.55);
-  backdrop-filter: blur(20px);
+  background: rgba(255, 255, 255, 0.06);
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  backdrop-filter: blur(18px);
+  box-shadow: 0 35px 100px rgba(0, 0, 0, 0.55);
 }
 
-.loader-logo {
-  width: 82px;
-  height: 82px;
+.loader-juice-img {
+  width: 260px;
+  height: 320px;
   object-fit: contain;
-  margin-bottom: 4px;
-  filter: drop-shadow(0 0 24px rgba(166,235,83,.5));
-  animation: logoPulse 1.8s ease-in-out infinite;
-}
-
-.glass-scene {
-  position: relative;
-  width: 220px;
-  height: 270px;
-  margin: -6px auto 4px;
-}
-
-.juice-glass-svg {
-  width: 100%;
-  height: 100%;
-  overflow: visible;
-  filter: drop-shadow(0 22px 24px rgba(0,0,0,.42));
-}
-
-.pour-stream {
-  position: absolute;
-  left: 50%;
-  top: 2px;
-  width: 14px;
-  height: 0;
-  transform: translateX(-50%);
-  border-radius: 999px;
-  background: linear-gradient(180deg, #fff3a4, #ffb12b, #ff7a00);
-  box-shadow: 0 0 18px rgba(255, 177, 43, .65);
-  z-index: 4;
-  animation: pourJuice 1.6s ease forwards;
-}
-
-.juice-fill-svg {
-  fill: url(#fake);
-  animation: svgFill 2.15s ease forwards;
-}
-
-.juice-fill-svg,
-.juice-wave-svg {
-  fill: #ff9f1c;
-}
-
-.wave-a {
-  fill: rgba(255, 198, 66, .95);
-  animation: waveA 1.65s linear infinite;
-}
-
-.wave-b {
-  fill: rgba(255, 122, 0, .85);
-  animation: waveB 2.1s linear infinite;
-}
-
-.svg-bubble {
-  fill: rgba(255,255,255,.65);
-  animation: svgBubble 1.9s ease-in-out infinite;
-}
-
-.b1 { animation-delay: .1s; }
-.b2 { animation-delay: .45s; }
-.b3 { animation-delay: .75s; }
-.b4 { animation-delay: 1.05s; }
-
-.straw-svg {
-  filter: drop-shadow(0 0 6px rgba(255,71,126,.45));
+  display: block;
+  margin: -8px auto 4px;
+  filter: drop-shadow(0 28px 35px rgba(0, 0, 0, 0.55));
+  animation: juiceFloat 1.8s ease-in-out infinite;
 }
 
 .loader-card h2 {
@@ -125,7 +40,7 @@
   font-size: 38px;
   letter-spacing: 2px;
   color: #fff;
-  text-shadow: 0 0 22px rgba(166,235,83,.32);
+  text-shadow: 0 0 22px rgba(255, 170, 0, 0.35);
 }
 
 .loader-card p {
@@ -139,58 +54,31 @@
   height: 8px;
   border-radius: 999px;
   overflow: hidden;
-  background: rgba(255,255,255,.13);
+  background: rgba(255, 255, 255, 0.14);
 }
 
 .loader-progress span {
   display: block;
-  width: 0%;
+  width: 0;
   height: 100%;
   border-radius: inherit;
-  background: linear-gradient(90deg, #8de03b, #ffd34d, #ff8c1a);
-  animation: progressFill 2.65s ease forwards;
+  background: linear-gradient(90deg, #8de03b, #ffd34d, #ff9f1c);
+  animation: progressFill 2.55s ease forwards;
 }
 
-@keyframes pourJuice {
-  0% { height: 0; opacity: 0; }
-  15%, 78% { opacity: 1; }
-  80% { height: 125px; }
-  100% { height: 0; opacity: 0; top: 95px; }
-}
-
-@keyframes svgFill {
-  from { y: 238px; height: 0; }
-  to { y: 92px; height: 150px; }
-}
-
-@keyframes waveA {
-  from { transform: translateX(-16px); }
-  to { transform: translateX(16px); }
-}
-
-@keyframes waveB {
-  from { transform: translateX(16px); }
-  to { transform: translateX(-16px); }
-}
-
-@keyframes svgBubble {
-  0% { transform: translateY(18px) scale(.7); opacity: 0; }
-  35% { opacity: 1; }
-  100% { transform: translateY(-72px) scale(1.15); opacity: 0; }
+@keyframes juiceFloat {
+  0%, 100% {
+    transform: translateY(0) scale(1);
+  }
+  50% {
+    transform: translateY(-10px) scale(1.035);
+  }
 }
 
 @keyframes progressFill {
-  to { width: 100%; }
-}
-
-@keyframes logoPulse {
-  0%, 100% { transform: scale(1); opacity: .96; }
-  50% { transform: scale(1.06); opacity: 1; }
-}
-
-@keyframes orbMove {
-  0%, 100% { transform: translate(0,0) scale(1); }
-  50% { transform: translate(20px,-18px) scale(1.12); }
+  to {
+    width: 100%;
+  }
 }
 
 @keyframes loaderOut {
@@ -208,17 +96,12 @@
 @media (max-width: 520px) {
   .loader-card {
     max-width: 315px;
-    padding: 26px 20px;
+    padding: 16px 18px 24px;
   }
 
-  .glass-scene {
-    width: 190px;
-    height: 235px;
-  }
-
-  .loader-logo {
-    width: 70px;
-    height: 70px;
+  .loader-juice-img {
+    width: 220px;
+    height: 275px;
   }
 
   .loader-card h2 {
