@@ -1,190 +1,97 @@
-.site-loader {
-  position: fixed;
-  inset: 0;
-  z-index: 9999999;
-  display: grid;
-  place-items: center;
-  overflow: hidden;
-  background:
-    radial-gradient(circle at 50% 30%, rgba(255, 170, 0, .25), transparent 35%),
-    linear-gradient(135deg, #020802, #001706 55%, #000);
-  animation: loaderOut 4s ease forwards;
+.site-loader{
+  position:fixed;
+  inset:0;
+  z-index:999999;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  background:#020b03;
 }
 
-.loader-card {
-  width: 92%;
-  max-width: 390px;
-  padding: 20px 22px 28px;
-  text-align: center;
-  border-radius: 34px;
-  background: rgba(255,255,255,.07);
-  border: 1px solid rgba(255,255,255,.14);
-  backdrop-filter: blur(18px);
-  box-shadow: 0 35px 100px rgba(0,0,0,.55);
+.loader-box{
+  text-align:center;
 }
 
-.juice-3d-wrap {
-  position: relative;
-  width: 260px;
-  height: 330px;
-  margin: 0 auto 8px;
-  overflow: hidden;
-  animation: glassFloat 2s ease-in-out infinite;
-  filter: drop-shadow(0 28px 35px rgba(0,0,0,.55));
+.loader-logo{
+  width:80px;
+  margin-bottom:15px;
 }
 
-.juice-base-img {
-  width: 100%;
-  height: 100%;
-  object-fit: contain;
-  position: relative;
-  z-index: 3;
+.glass-container{
+  position:relative;
+  width:260px;
+  height:420px;
+  margin:auto;
 }
 
-.juice-fill-layer {
-  position: absolute;
-  left: 42px;
-  right: 42px;
-  bottom: 43px;
-  height: 0%;
-  z-index: 2;
-  border-radius: 0 0 34px 34px;
-  background:
-    linear-gradient(
-      180deg,
-      rgba(255, 230, 90, .95),
-      rgba(255, 158, 20, .95) 45%,
-      rgba(240, 120, 0, .95)
-    );
-  box-shadow:
-    inset 0 0 20px rgba(255,255,255,.35),
-    0 0 25px rgba(255,160,0,.35);
-  animation: juiceRise 3s ease forwards;
+.empty-glass,
+.filled-glass{
+  position:absolute;
+  inset:0;
+  width:100%;
+  height:100%;
+  object-fit:contain;
 }
 
-.juice-fill-layer::before {
-  content: "";
-  position: absolute;
-  left: -20%;
-  top: -18px;
-  width: 140%;
-  height: 35px;
-  border-radius: 50%;
-  background: rgba(255, 230, 120, .9);
-  animation: waveMove 1.3s ease-in-out infinite alternate;
+.empty-glass{
+  z-index:5;
 }
 
-.juice-fill-layer::after {
-  content: "";
-  position: absolute;
-  inset: 8px 18px auto auto;
-  width: 9px;
-  height: 9px;
-  border-radius: 50%;
-  background: rgba(255,255,255,.7);
-  box-shadow:
-    -35px 45px 0 rgba(255,255,255,.45),
-    15px 85px 0 rgba(255,255,255,.35),
-    -12px 120px 0 rgba(255,255,255,.3);
-  animation: bubbles 1.4s ease-in-out infinite;
+.juice-mask{
+  position:absolute;
+  inset:0;
+  z-index:2;
+  overflow:hidden;
+  animation:fillGlass 3s ease forwards;
 }
 
-.juice-shine {
-  position: absolute;
-  top: 26px;
-  left: 62px;
-  width: 34px;
-  height: 230px;
-  z-index: 4;
-  border-radius: 50px;
-  background: linear-gradient(to bottom, rgba(255,255,255,.45), transparent);
-  opacity: .5;
+.filled-glass{
+  z-index:1;
 }
 
-.loader-card h2 {
-  margin: 0;
-  font-family: "Bebas Neue", Impact, sans-serif;
-  font-size: 38px;
-  letter-spacing: 2px;
-  color: #fff;
+.loader-box h2{
+  color:#fff;
+  margin-top:10px;
+  font-family:"Bebas Neue";
+  letter-spacing:2px;
 }
 
-.loader-card p {
-  margin: 6px 0 16px;
-  color: #a6eb53;
-  font-weight: 800;
+.loader-bar{
+  width:260px;
+  height:8px;
+  margin:auto;
+  margin-top:15px;
+  border-radius:50px;
+  background:#111;
+  overflow:hidden;
 }
 
-.loader-progress {
-  height: 8px;
-  border-radius: 999px;
-  overflow: hidden;
-  background: rgba(255,255,255,.14);
+.loader-bar span{
+  display:block;
+  width:0%;
+  height:100%;
+  background:linear-gradient(
+    90deg,
+    #8de03b,
+    #ffb100
+  );
+  animation:progress 3s linear forwards;
 }
 
-.loader-progress span {
-  display: block;
-  width: 0%;
-  height: 100%;
-  border-radius: inherit;
-  background: linear-gradient(90deg, #8de03b, #ffd34d, #ff9f1c);
-  animation: progressFill 3s ease forwards;
-}
-
-@keyframes juiceRise {
-  from { height: 0%; }
-  to { height: 69%; }
-}
-
-@keyframes waveMove {
-  from { transform: translateX(-12px) rotate(-2deg); }
-  to { transform: translateX(12px) rotate(2deg); }
-}
-
-@keyframes bubbles {
-  0%, 100% { transform: translateY(0); opacity: .4; }
-  50% { transform: translateY(-18px); opacity: 1; }
-}
-
-@keyframes glassFloat {
-  0%, 100% { transform: translateY(0) scale(1); }
-  50% { transform: translateY(-10px) scale(1.03); }
-}
-
-@keyframes progressFill {
-  to { width: 100%; }
-}
-
-@keyframes loaderOut {
-  0%, 86% {
-    opacity: 1;
-    visibility: visible;
+@keyframes fillGlass{
+  from{
+    clip-path: inset(100% 0 0 0);
   }
-  100% {
-    opacity: 0;
-    visibility: hidden;
-    pointer-events: none;
+  to{
+    clip-path: inset(0% 0 0 0);
   }
 }
 
-@media (max-width: 520px) {
-  .loader-card {
-    max-width: 315px;
-    padding: 18px 18px 24px;
+@keyframes progress{
+  from{
+    width:0%;
   }
-
-  .juice-3d-wrap {
-    width: 220px;
-    height: 285px;
-  }
-
-  .juice-fill-layer {
-    left: 36px;
-    right: 36px;
-    bottom: 38px;
-  }
-
-  .loader-card h2 {
-    font-size: 31px;
+  to{
+    width:100%;
   }
 }
