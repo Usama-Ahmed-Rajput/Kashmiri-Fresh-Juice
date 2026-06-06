@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from 'react';
 import { Link } from 'react-router-dom';
-import { motion } from 'framer-motion';
+import { motion, useMotionValue, useSpring, useTransform } from 'framer-motion';
 import Navbar from '../../components/Navbar/Navbar';
 import Cart from '../../components/Cart/Cart';
 import Footer from '../../components/Footer/Footer';
@@ -19,6 +19,71 @@ const cardVariants = {
     transition: { duration: 0.5, delay: index * 0.04, ease: 'easeOut' },
   }),
 };
+
+function AllProductCard({ product, index, flyToCart }) {
+  const x = useMotionValue(0);
+  const y = useMotionValue(0);
+
+  const smoothX = useSpring(x, { stiffness: 180, damping: 18 });
+  const smoothY = useSpring(y, { stiffness: 180, damping: 18 });
+
+  const rotateY = useTransform(smoothX, [-0.5, 0.5], [-9, 9]);
+  const rotateX = useTransform(smoothY, [-0.5, 0.5], [9, -9]);
+
+  const handleMouseMove = (e) => {
+    if (window.innerWidth <= 980) return;
+
+    const rect = e.currentTarget.getBoundingClientRect();
+    x.set((e.clientX - rect.left) / rect.width - 0.5);
+    y.set((e.clientY - rect.top) / rect.height - 0.5);
+  };
+
+  const resetTilt = () => {
+    x.set(0);
+    y.set(0);
+  };
+
+  return (
+    <motion.article
+      className="card product-3d-card"
+      key={product.id}
+      custom={index}
+      variants={cardVariants}
+      initial="hidden"
+      whileInView="visible"
+      viewport={{ once: true, amount: 0.2 }}
+      style={{ rotateX, rotateY, transformPerspective: 1000 }}
+      onMouseMove={handleMouseMove}
+      onMouseLeave={resetTilt}
+      whileHover={{ y: -12, scale: 1.02 }}
+      transition={{ type: 'spring', stiffness: 220, damping: 18 }}
+    >
+      <span className="card-shine"></span>
+
+      <label>{product.badge || 'FRESH'}</label>
+
+      <motion.img
+        src={product.image}
+        alt={product.name}
+        className="product-img"
+        whileHover={{ scale: 1.13, y: -14, rotateZ: -2 }}
+        transition={{ type: 'spring', stiffness: 220, damping: 16 }}
+      />
+
+      <h3>{product.name}</h3>
+      <p>{product.description}</p>
+      <strong>Rs. {product.price}</strong>
+
+      <motion.button
+        whileHover={{ y: -3, scale: 1.02 }}
+        whileTap={{ scale: 0.95 }}
+        onClick={(e) => flyToCart(product, e)}
+      >
+        <i className="fa-solid fa-cart-plus"></i> Add to Cart
+      </motion.button>
+    </motion.article>
+  );
+}
 
 export default function AllProducts() {
   const [products, setProducts] = useState([]);
@@ -72,7 +137,7 @@ export default function AllProducts() {
   );
 
   const filteredProducts = useMemo(
-    () => category === 'All' ? products : products.filter((p) => p.category === category),
+    () => (category === 'All' ? products : products.filter((p) => p.category === category)),
     [products, category]
   );
 
@@ -97,7 +162,7 @@ export default function AllProducts() {
 
   const flyToCart = (product, e) => {
     const card = e.currentTarget.closest('.card');
-    const productImg = card.querySelector('img');
+    const productImg = card?.querySelector('.product-img');
     const cartBtn = document.querySelector('.cart-top');
 
     if (!productImg || !cartBtn) {
@@ -106,10 +171,15 @@ export default function AllProducts() {
     }
 
     const imgRect = productImg.getBoundingClientRect();
+    const isMobile = window.innerWidth <= 600;
+
+    const animationDuration = isMobile ? 1700 : 1450;
+    const scrollDelay = isMobile ? 420 : 300;
 
     const flyingImg = document.createElement('img');
     flyingImg.src = product.image;
     flyingImg.className = 'fly-cart-img';
+
     flyingImg.style.left = `${imgRect.left}px`;
     flyingImg.style.top = `${imgRect.top}px`;
     flyingImg.style.width = `${imgRect.width}px`;
@@ -119,47 +189,64 @@ export default function AllProducts() {
 
     cartBtn.scrollIntoView({
       behavior: 'smooth',
-      block: 'center',
-      inline: 'center',
+      block: 'start',
+      inline: 'nearest',
     });
 
     setTimeout(() => {
       const cartRect = cartBtn.getBoundingClientRect();
 
+      const startX = imgRect.left;
+      const startY = imgRect.top;
+
+      const endX = cartRect.left + cartRect.width / 2 - 18;
+      const endY = cartRect.top + cartRect.height / 2 - 18;
+
+      const midX = startX + (endX - startX) * 0.5;
+      const midY = Math.min(startY, endY) - 130;
+
       flyingImg.animate(
         [
           {
-            left: `${imgRect.left}px`,
-            top: `${imgRect.top}px`,
+            left: `${startX}px`,
+            top: `${startY}px`,
             width: `${imgRect.width}px`,
             height: `${imgRect.height}px`,
             opacity: 1,
-            transform: 'rotate(0deg) scale(1)',
+            transform: 'rotateX(0deg) rotateY(0deg) rotateZ(0deg) scale(1)',
           },
           {
-            left: `${cartRect.left + cartRect.width / 2 - 15}px`,
-            top: `${cartRect.top + cartRect.height / 2 - 15}px`,
-            width: '30px',
-            height: '30px',
-            opacity: 0.2,
-            transform: 'rotate(360deg) scale(0.25)',
+            left: `${midX}px`,
+            top: `${midY}px`,
+            width: `${imgRect.width * 0.55}px`,
+            height: `${imgRect.height * 0.55}px`,
+            opacity: 0.92,
+            transform: 'rotateX(18deg) rotateY(-18deg) rotateZ(180deg) scale(0.75)',
+          },
+          {
+            left: `${endX}px`,
+            top: `${endY}px`,
+            width: '36px',
+            height: '36px',
+            opacity: 0.15,
+            transform: 'rotateX(25deg) rotateY(25deg) rotateZ(360deg) scale(0.22)',
           },
         ],
         {
-          duration: 1300,
-          easing: 'cubic-bezier(.25,.8,.25,1)',
+          duration: animationDuration,
+          easing: 'cubic-bezier(0.22, 1, 0.36, 1)',
           fill: 'forwards',
         }
       );
+    }, scrollDelay);
 
-      setTimeout(() => {
-        flyingImg.remove();
-        addToCart(product);
+    setTimeout(() => {
+      flyingImg.remove();
+      addToCart(product);
 
-        cartBtn.classList.add('cart-bounce');
-        setTimeout(() => cartBtn.classList.remove('cart-bounce'), 450);
-      }, 1280);
-    }, 650);
+      cartBtn.classList.add('cart-bounce');
+      setTimeout(() => cartBtn.classList.remove('cart-bounce'), 550);
+    }, animationDuration + scrollDelay);
   };
 
   const changeQty = (id, delta) => {
@@ -212,6 +299,18 @@ export default function AllProducts() {
       />
 
       <section className="all-products-hero" style={{ '--orange': `url(${orangeImg})` }}>
+        <motion.span
+          className="all-floating-fruit all-fruit-one"
+          animate={{ y: [0, -24, 0], rotate: [0, 18, 0] }}
+          transition={{ duration: 6, repeat: Infinity, ease: 'easeInOut' }}
+        />
+
+        <motion.span
+          className="all-floating-fruit all-fruit-two"
+          animate={{ y: [0, 18, 0], rotate: [0, -16, 0] }}
+          transition={{ duration: 7, repeat: Infinity, ease: 'easeInOut' }}
+        />
+
         <p className="script">
           Complete Fresh Menu <i className="fa-solid fa-seedling"></i>
         </p>
@@ -245,30 +344,12 @@ export default function AllProducts() {
 
         <div className="cards all-products-cards">
           {filteredProducts.map((product, index) => (
-            <motion.article
-              className="card"
+            <AllProductCard
               key={product.id}
-              custom={index}
-              variants={cardVariants}
-              initial="hidden"
-              whileInView="visible"
-              viewport={{ once: true, amount: 0.2 }}
-              whileHover={{ y: -10, scale: 1.015 }}
-              transition={{ type: 'spring', stiffness: 220, damping: 18 }}
-            >
-              <label>{product.badge || 'FRESH'}</label>
-              <img src={product.image} alt={product.name} />
-              <h3>{product.name}</h3>
-              <p>{product.description}</p>
-              <strong>Rs. {product.price}</strong>
-
-              <motion.button
-                whileTap={{ scale: 0.96 }}
-                onClick={(e) => flyToCart(product, e)}
-              >
-                <i className="fa-solid fa-cart-plus"></i> Add to Cart
-              </motion.button>
-            </motion.article>
+              product={product}
+              index={index}
+              flyToCart={flyToCart}
+            />
           ))}
         </div>
       </section>
