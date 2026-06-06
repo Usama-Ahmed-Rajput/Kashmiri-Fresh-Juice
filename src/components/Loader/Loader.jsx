@@ -3,34 +3,19 @@ import './Loader.css';
 export default function Loader() {
   return (
     <div className="site-loader">
-      <div className="loader-box">
+      <div className="loader-glow"></div>
 
-        <img src="/logo.png" className="loader-logo" alt="" />
+      <div className="kfj-loader">
+        <img src="/logo.png" alt="Kashmiri Fresh Juices" className="kfj-loader-logo" />
 
-        <div className="glass-container">
+        <h1>Kashmiri Fresh Juices</h1>
+        <p>Pure Taste, Pure Health</p>
 
-          <div className="juice-mask">
-            <img
-              src="/filled-juice.png"
-              alt=""
-              className="filled-glass"
-            />
-          </div>
-
-          <img
-            src="/empty-glass.png"
-            alt=""
-            className="empty-glass"
-          />
-
+        <div className="kfj-ring">
+          <span></span>
         </div>
 
-        <h2>Kashmiri Fresh Juices</h2>
-
-        <div className="loader-bar">
-          <span />
-        </div>
-
+        <div className="kfj-loading-text">Loading...</div>
       </div>
     </div>
   );
