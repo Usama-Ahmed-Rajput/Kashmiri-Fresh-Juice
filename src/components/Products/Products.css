@@ -28,6 +28,7 @@
   top: -40px;
   width: 160px;
   height: 160px;
+  animation: fruitFloatOne 7s ease-in-out infinite;
 }
 
 .popular:after {
@@ -36,6 +37,66 @@
   width: 120px;
   height: 120px;
   transform: rotate(-20deg);
+  animation: fruitFloatTwo 8s ease-in-out infinite;
+}
+
+.floating-fruit {
+  position: absolute;
+  background: var(--orange) center/contain no-repeat;
+  pointer-events: none;
+  z-index: 0;
+  opacity: 0.28;
+  filter: blur(0.2px) drop-shadow(0 18px 20px rgba(0, 0, 0, 0.45));
+}
+
+.fruit-one {
+  width: 90px;
+  height: 90px;
+  right: 18%;
+  top: 38%;
+}
+
+.fruit-two {
+  width: 72px;
+  height: 72px;
+  left: 16%;
+  top: 18%;
+}
+
+@keyframes fruitFloatOne {
+  0% {
+    transform: translateY(0) rotate(0deg);
+  }
+
+  50% {
+    transform: translateY(-18px) rotate(16deg);
+  }
+
+  100% {
+    transform: translateY(0) rotate(0deg);
+  }
+}
+
+@keyframes fruitFloatTwo {
+  0% {
+    transform: translateY(0) rotate(-20deg);
+  }
+
+  50% {
+    transform: translateY(18px) rotate(-36deg);
+  }
+
+  100% {
+    transform: translateY(0) rotate(-20deg);
+  }
+}
+
+.popular h2,
+.popular .script,
+.cards,
+.full-menu-wrap {
+  position: relative;
+  z-index: 1;
 }
 
 .popular h2 {
@@ -83,6 +144,7 @@
   width: 100%;
   max-width: 100%;
   box-sizing: border-box;
+  perspective: 1200px;
 }
 
 .card {
@@ -104,6 +166,15 @@
   max-width: 100%;
   min-width: 0;
   box-sizing: border-box;
+  transform-style: preserve-3d;
+  will-change: transform;
+}
+
+.card:hover {
+  box-shadow:
+    0 34px 75px rgba(0, 0, 0, 0.72),
+    0 0 35px rgba(143, 226, 53, 0.16),
+    inset 0 0 55px rgba(124, 255, 27, 0.1);
 }
 
 .card:before {
@@ -118,6 +189,27 @@
   pointer-events: none;
 }
 
+.card-shine {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(
+    115deg,
+    transparent 0%,
+    transparent 36%,
+    rgba(255, 255, 255, 0.12) 48%,
+    transparent 62%,
+    transparent 100%
+  );
+  transform: translateX(-130%);
+  transition: transform 0.85s ease;
+  z-index: 1;
+  pointer-events: none;
+}
+
+.card:hover .card-shine {
+  transform: translateX(130%);
+}
+
 .card label {
   display: inline-block;
   background: linear-gradient(180deg, #a9ed45, #438d09);
@@ -126,7 +218,8 @@
   font-size: 11px;
   font-weight: 900;
   position: relative;
-  z-index: 2;
+  z-index: 3;
+  transform: translateZ(34px);
 }
 
 .card img {
@@ -137,13 +230,18 @@
   margin: 0 0 2px;
   filter: drop-shadow(0 13px 16px #000);
   display: block;
+  position: relative;
+  z-index: 2;
+  transform-style: preserve-3d;
+  will-change: transform;
 }
 
 .card h3 {
   font-size: 21px;
   position: relative;
-  z-index: 2;
+  z-index: 3;
   word-break: break-word;
+  transform: translateZ(30px);
 }
 
 .card p {
@@ -151,8 +249,9 @@
   color: #eefbdc;
   margin-top: 5px;
   position: relative;
-  z-index: 2;
+  z-index: 3;
   word-break: break-word;
+  transform: translateZ(26px);
 }
 
 .card strong {
@@ -161,7 +260,8 @@
   font-size: 20px;
   margin: 8px 0 14px;
   position: relative;
-  z-index: 2;
+  z-index: 3;
+  transform: translateZ(30px);
 }
 
 .card button {
@@ -179,8 +279,36 @@
   font-weight: 800;
   cursor: pointer;
   position: relative;
-  z-index: 3;
+  z-index: 4;
   box-sizing: border-box;
+  overflow: hidden;
+  transform: translateZ(38px);
+  box-shadow:
+    0 14px 28px rgba(0, 0, 0, 0.28),
+    inset 0 1px 0 rgba(255, 255, 255, 0.3);
+}
+
+.card button:before,
+.full-menu:before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: -85%;
+  width: 55%;
+  height: 100%;
+  background: linear-gradient(
+    110deg,
+    transparent,
+    rgba(255, 255, 255, 0.34),
+    transparent
+  );
+  transform: skewX(-22deg);
+  transition: left 0.7s ease;
+}
+
+.card button:hover:before,
+.full-menu:hover:before {
+  left: 130%;
 }
 
 .fly-cart-img {
@@ -189,11 +317,14 @@
   z-index: 999999;
   pointer-events: none;
   max-width: 100vw;
-  filter: drop-shadow(0 18px 20px rgba(0, 0, 0, 0.85));
+  transform-style: preserve-3d;
+  filter:
+    drop-shadow(0 18px 20px rgba(0, 0, 0, 0.85))
+    drop-shadow(0 0 15px rgba(143, 226, 53, 0.35));
 }
 
 .cart-bounce {
-  animation: cartBounce 0.45s ease;
+  animation: cartBounce 0.55s ease;
 }
 
 @keyframes cartBounce {
@@ -202,15 +333,15 @@
   }
 
   35% {
-    transform: scale(1.28);
+    transform: scale(1.28) rotate(-4deg);
   }
 
   70% {
-    transform: scale(0.92);
+    transform: scale(0.92) rotate(4deg);
   }
 
   100% {
-    transform: scale(1);
+    transform: scale(1) rotate(0deg);
   }
 }
 
@@ -236,6 +367,9 @@
   text-decoration: none;
   max-width: 100%;
   box-sizing: border-box;
+  position: relative;
+  overflow: hidden;
+  box-shadow: 0 14px 30px rgba(0, 0, 0, 0.25);
 }
 
 .full-menu:hover {
@@ -254,21 +388,32 @@
   }
 
   .popular:before,
-  .popular:after {
+  .popular:after,
+  .floating-fruit {
     display: none;
   }
 
   .cards {
     grid-template-columns: minmax(0, 1fr);
     gap: 18px;
+    perspective: none;
   }
 
   .card {
     padding: 18px 16px 23px;
+    transform: none !important;
   }
 
   .card img {
     height: 220px;
+  }
+
+  .card label,
+  .card h3,
+  .card p,
+  .card strong,
+  .card button {
+    transform: none;
   }
 }
 
@@ -311,5 +456,20 @@
 
   .card img {
     height: 240px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .popular:before,
+  .popular:after,
+  .floating-fruit,
+  .card-shine {
+    animation: none !important;
+    transition: none !important;
+  }
+
+  .card,
+  .card img {
+    transform: none !important;
   }
 }
