@@ -742,3 +742,7 @@
     height: 34px;
   }
 }
+
+.category-fruit{
+  display:none !important;
+}
