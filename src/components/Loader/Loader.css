@@ -6,113 +6,118 @@
   place-items: center;
   overflow: hidden;
   background:
-    radial-gradient(circle at 50% 20%, rgba(164, 255, 72, 0.22), transparent 30%),
-    radial-gradient(circle at 20% 80%, rgba(255, 170, 0, 0.18), transparent 28%),
-    linear-gradient(135deg, #010b03, #001b08 55%, #000);
-  animation: loaderOut 2.8s ease forwards;
+    radial-gradient(circle at 50% 22%, rgba(255, 166, 0, .22), transparent 32%),
+    radial-gradient(circle at 20% 80%, rgba(142, 224, 59, .22), transparent 30%),
+    linear-gradient(135deg, #020802, #001706 55%, #000);
+  animation: loaderOut 3.4s ease forwards;
+}
+
+.loader-orb {
+  position: absolute;
+  width: 260px;
+  height: 260px;
+  border-radius: 50%;
+  filter: blur(30px);
+  opacity: .28;
+  animation: orbMove 5s ease-in-out infinite;
+}
+
+.orb-1 {
+  background: #ff9f1c;
+  top: 10%;
+  left: 12%;
+}
+
+.orb-2 {
+  background: #8de03b;
+  right: 10%;
+  bottom: 12%;
+  animation-delay: 1s;
 }
 
 .loader-card {
   width: 92%;
-  max-width: 360px;
-  padding: 32px 24px;
+  max-width: 380px;
+  padding: 30px 24px 28px;
   text-align: center;
-  border-radius: 30px;
-  background: rgba(255, 255, 255, 0.08);
-  border: 1px solid rgba(166, 235, 83, 0.22);
-  box-shadow: 0 30px 90px rgba(0, 0, 0, 0.45);
-  backdrop-filter: blur(18px);
-  transform: translateY(-8px);
+  border-radius: 34px;
+  position: relative;
+  background: linear-gradient(180deg, rgba(255,255,255,.13), rgba(255,255,255,.05));
+  border: 1px solid rgba(255,255,255,.16);
+  box-shadow: 0 35px 110px rgba(0,0,0,.55);
+  backdrop-filter: blur(20px);
 }
 
 .loader-logo {
-  width: 88px;
-  height: 88px;
+  width: 82px;
+  height: 82px;
   object-fit: contain;
-  margin-bottom: 16px;
-  filter: drop-shadow(0 0 22px rgba(166, 235, 83, 0.45));
-  animation: logoPulse 1.7s ease-in-out infinite;
+  margin-bottom: 4px;
+  filter: drop-shadow(0 0 24px rgba(166,235,83,.5));
+  animation: logoPulse 1.8s ease-in-out infinite;
 }
 
-.real-glass {
+.glass-scene {
   position: relative;
-  width: 110px;
-  height: 145px;
-  margin: 0 auto 20px;
-  border: 3px solid rgba(255, 255, 255, 0.72);
-  border-top: 0;
-  border-radius: 8px 8px 34px 34px;
-  overflow: hidden;
-  background: rgba(255, 255, 255, 0.08);
-  box-shadow:
-    inset 0 0 18px rgba(255, 255, 255, 0.18),
-    0 0 35px rgba(255, 174, 0, 0.25);
+  width: 220px;
+  height: 270px;
+  margin: -6px auto 4px;
 }
 
-.glass-shine {
-  position: absolute;
-  left: 15px;
-  top: 14px;
-  width: 18px;
-  height: 95px;
-  border-radius: 50px;
-  background: linear-gradient(to bottom, rgba(255,255,255,.55), transparent);
-  z-index: 5;
-}
-
-.straw {
-  position: absolute;
-  width: 9px;
-  height: 145px;
-  right: 25px;
-  top: -42px;
-  border-radius: 20px;
-  background: linear-gradient(90deg, #fff, #ff4f7b);
-  transform: rotate(16deg);
-  z-index: 4;
-}
-
-.juice-liquid {
-  position: absolute;
-  left: 0;
-  bottom: 0;
+.juice-glass-svg {
   width: 100%;
-  height: 0%;
-  background: linear-gradient(180deg, #ffd34d, #ff9f1c 45%, #79d83b);
-  animation: juiceFill 2s ease forwards;
+  height: 100%;
+  overflow: visible;
+  filter: drop-shadow(0 22px 24px rgba(0,0,0,.42));
 }
 
-.juice-wave {
+.pour-stream {
   position: absolute;
-  left: -40%;
-  top: -18px;
-  width: 180%;
-  height: 38px;
-  border-radius: 45%;
-  background: rgba(255, 255, 255, 0.28);
-  animation: waveMove 1.8s linear infinite;
+  left: 50%;
+  top: 2px;
+  width: 14px;
+  height: 0;
+  transform: translateX(-50%);
+  border-radius: 999px;
+  background: linear-gradient(180deg, #fff3a4, #ffb12b, #ff7a00);
+  box-shadow: 0 0 18px rgba(255, 177, 43, .65);
+  z-index: 4;
+  animation: pourJuice 1.6s ease forwards;
 }
 
-.wave-2 {
-  top: -13px;
-  opacity: 0.35;
-  animation-duration: 2.4s;
-  animation-direction: reverse;
+.juice-fill-svg {
+  fill: url(#fake);
+  animation: svgFill 2.15s ease forwards;
 }
 
-.bubble {
-  position: absolute;
-  bottom: 16px;
-  border-radius: 50%;
-  background: rgba(255, 255, 255, 0.65);
-  z-index: 3;
-  animation: bubbleUp 1.8s ease-in-out infinite;
+.juice-fill-svg,
+.juice-wave-svg {
+  fill: #ff9f1c;
 }
 
-.bubble-1 { width: 8px; height: 8px; left: 23px; animation-delay: .1s; }
-.bubble-2 { width: 12px; height: 12px; left: 48px; animation-delay: .45s; }
-.bubble-3 { width: 7px; height: 7px; left: 72px; animation-delay: .75s; }
-.bubble-4 { width: 10px; height: 10px; left: 60px; animation-delay: 1s; }
+.wave-a {
+  fill: rgba(255, 198, 66, .95);
+  animation: waveA 1.65s linear infinite;
+}
+
+.wave-b {
+  fill: rgba(255, 122, 0, .85);
+  animation: waveB 2.1s linear infinite;
+}
+
+.svg-bubble {
+  fill: rgba(255,255,255,.65);
+  animation: svgBubble 1.9s ease-in-out infinite;
+}
+
+.b1 { animation-delay: .1s; }
+.b2 { animation-delay: .45s; }
+.b3 { animation-delay: .75s; }
+.b4 { animation-delay: 1.05s; }
+
+.straw-svg {
+  filter: drop-shadow(0 0 6px rgba(255,71,126,.45));
+}
 
 .loader-card h2 {
   margin: 0;
@@ -120,7 +125,7 @@
   font-size: 38px;
   letter-spacing: 2px;
   color: #fff;
-  text-shadow: 0 0 20px rgba(166, 235, 83, 0.35);
+  text-shadow: 0 0 22px rgba(166,235,83,.32);
 }
 
 .loader-card p {
@@ -134,43 +139,44 @@
   height: 8px;
   border-radius: 999px;
   overflow: hidden;
-  background: rgba(255,255,255,.12);
+  background: rgba(255,255,255,.13);
 }
 
 .loader-progress span {
   display: block;
-  height: 100%;
   width: 0%;
+  height: 100%;
   border-radius: inherit;
-  background: linear-gradient(90deg, #8de03b, #ffd34d, #ff9f1c);
-  animation: progressFill 2.1s ease forwards;
+  background: linear-gradient(90deg, #8de03b, #ffd34d, #ff8c1a);
+  animation: progressFill 2.65s ease forwards;
 }
 
-.loader-bg-fruit {
-  position: absolute;
-  font-size: 42px;
-  opacity: 0.18;
-  filter: blur(.2px);
-  animation: fruitFloat 4s ease-in-out infinite;
+@keyframes pourJuice {
+  0% { height: 0; opacity: 0; }
+  15%, 78% { opacity: 1; }
+  80% { height: 125px; }
+  100% { height: 0; opacity: 0; top: 95px; }
 }
 
-.fruit-1 { top: 18%; left: 18%; }
-.fruit-2 { top: 64%; right: 18%; animation-delay: .8s; }
-.fruit-3 { bottom: 14%; left: 26%; animation-delay: 1.2s; }
-
-@keyframes juiceFill {
-  to { height: 82%; }
+@keyframes svgFill {
+  from { y: 238px; height: 0; }
+  to { y: 92px; height: 150px; }
 }
 
-@keyframes waveMove {
-  from { transform: translateX(0) rotate(0deg); }
-  to { transform: translateX(35px) rotate(360deg); }
+@keyframes waveA {
+  from { transform: translateX(-16px); }
+  to { transform: translateX(16px); }
 }
 
-@keyframes bubbleUp {
-  0% { transform: translateY(0) scale(.7); opacity: 0; }
-  30% { opacity: 1; }
-  100% { transform: translateY(-95px) scale(1.15); opacity: 0; }
+@keyframes waveB {
+  from { transform: translateX(16px); }
+  to { transform: translateX(-16px); }
+}
+
+@keyframes svgBubble {
+  0% { transform: translateY(18px) scale(.7); opacity: 0; }
+  35% { opacity: 1; }
+  100% { transform: translateY(-72px) scale(1.15); opacity: 0; }
 }
 
 @keyframes progressFill {
@@ -178,17 +184,17 @@
 }
 
 @keyframes logoPulse {
-  0%, 100% { transform: scale(1); }
-  50% { transform: scale(1.07); }
+  0%, 100% { transform: scale(1); opacity: .96; }
+  50% { transform: scale(1.06); opacity: 1; }
 }
 
-@keyframes fruitFloat {
-  0%, 100% { transform: translateY(0) rotate(0deg); }
-  50% { transform: translateY(-18px) rotate(8deg); }
+@keyframes orbMove {
+  0%, 100% { transform: translate(0,0) scale(1); }
+  50% { transform: translate(20px,-18px) scale(1.12); }
 }
 
 @keyframes loaderOut {
-  0%, 82% {
+  0%, 84% {
     opacity: 1;
     visibility: visible;
   }
@@ -201,21 +207,21 @@
 
 @media (max-width: 520px) {
   .loader-card {
-    max-width: 300px;
+    max-width: 315px;
     padding: 26px 20px;
+  }
+
+  .glass-scene {
+    width: 190px;
+    height: 235px;
+  }
+
+  .loader-logo {
+    width: 70px;
+    height: 70px;
   }
 
   .loader-card h2 {
     font-size: 31px;
-  }
-
-  .real-glass {
-    width: 96px;
-    height: 128px;
-  }
-
-  .loader-logo {
-    width: 74px;
-    height: 74px;
   }
 }
