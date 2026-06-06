@@ -1,97 +1,128 @@
-.site-loader{
-  position:fixed;
-  inset:0;
-  z-index:999999;
-  display:flex;
-  align-items:center;
-  justify-content:center;
-  background:#020b03;
+.site-loader {
+  position: fixed;
+  inset: 0;
+  z-index: 9999999;
+  display: grid;
+  place-items: center;
+  background:
+    radial-gradient(circle at center, rgba(142, 226, 53, .18), transparent 35%),
+    linear-gradient(135deg, #020802, #001606 55%, #000);
+  overflow: hidden;
+  animation: loaderOut 3s ease forwards;
 }
 
-.loader-box{
-  text-align:center;
+.loader-glow {
+  position: absolute;
+  width: 260px;
+  height: 260px;
+  border-radius: 50%;
+  background: conic-gradient(#8de03b, #ffb000, #8de03b);
+  filter: blur(45px);
+  opacity: .25;
+  animation: glowRotate 3s linear infinite;
 }
 
-.loader-logo{
-  width:80px;
-  margin-bottom:15px;
+.kfj-loader {
+  position: relative;
+  text-align: center;
+  padding: 34px 28px;
+  border-radius: 30px;
 }
 
-.glass-container{
-  position:relative;
-  width:260px;
-  height:420px;
-  margin:auto;
+.kfj-loader-logo {
+  width: 120px;
+  height: 120px;
+  object-fit: contain;
+  border-radius: 50%;
+  filter:
+    drop-shadow(0 0 18px rgba(142, 226, 53, .75))
+    drop-shadow(0 0 35px rgba(255, 176, 0, .35));
+  animation: logoZoom 1.7s ease-in-out infinite;
 }
 
-.empty-glass,
-.filled-glass{
-  position:absolute;
-  inset:0;
-  width:100%;
-  height:100%;
-  object-fit:contain;
+.kfj-loader h1 {
+  margin: 18px 0 4px;
+  font-family: "Bebas Neue", Impact, sans-serif;
+  font-size: 42px;
+  letter-spacing: 2px;
+  color: #fff;
+  text-shadow: 0 0 20px rgba(142, 226, 53, .45);
 }
 
-.empty-glass{
-  z-index:5;
+.kfj-loader p {
+  margin: 0 0 22px;
+  color: #a6eb53;
+  font-weight: 800;
 }
 
-.juice-mask{
-  position:absolute;
-  inset:0;
-  z-index:2;
-  overflow:hidden;
-  animation:fillGlass 3s ease forwards;
+.kfj-ring {
+  width: 210px;
+  height: 7px;
+  margin: 0 auto;
+  border-radius: 50px;
+  overflow: hidden;
+  background: rgba(255,255,255,.12);
 }
 
-.filled-glass{
-  z-index:1;
+.kfj-ring span {
+  display: block;
+  width: 0%;
+  height: 100%;
+  border-radius: inherit;
+  background: linear-gradient(90deg, #8de03b, #ffd24a, #ff9f1c);
+  animation: loadLine 2.3s ease forwards;
 }
 
-.loader-box h2{
-  color:#fff;
-  margin-top:10px;
-  font-family:"Bebas Neue";
-  letter-spacing:2px;
+.kfj-loading-text {
+  margin-top: 13px;
+  color: rgba(255,255,255,.75);
+  font-weight: 700;
+  letter-spacing: 3px;
+  font-size: 13px;
+  animation: textPulse 1s ease-in-out infinite;
 }
 
-.loader-bar{
-  width:260px;
-  height:8px;
-  margin:auto;
-  margin-top:15px;
-  border-radius:50px;
-  background:#111;
-  overflow:hidden;
+@keyframes logoZoom {
+  0%, 100% { transform: scale(1); }
+  50% { transform: scale(1.08); }
 }
 
-.loader-bar span{
-  display:block;
-  width:0%;
-  height:100%;
-  background:linear-gradient(
-    90deg,
-    #8de03b,
-    #ffb100
-  );
-  animation:progress 3s linear forwards;
+@keyframes glowRotate {
+  to { transform: rotate(360deg); }
 }
 
-@keyframes fillGlass{
-  from{
-    clip-path: inset(100% 0 0 0);
+@keyframes loadLine {
+  to { width: 100%; }
+}
+
+@keyframes textPulse {
+  0%, 100% { opacity: .45; }
+  50% { opacity: 1; }
+}
+
+@keyframes loaderOut {
+  0%, 84% {
+    opacity: 1;
+    visibility: visible;
   }
-  to{
-    clip-path: inset(0% 0 0 0);
+  100% {
+    opacity: 0;
+    visibility: hidden;
+    pointer-events: none;
   }
 }
 
-@keyframes progress{
-  from{
-    width:0%;
+@media (max-width: 520px) {
+  .kfj-loader-logo {
+    width: 95px;
+    height: 95px;
   }
-  to{
-    width:100%;
+
+  .kfj-loader h1 {
+    font-size: 32px;
+  }
+
+  .kfj-ring {
+    width: 185px;
   }
 }
