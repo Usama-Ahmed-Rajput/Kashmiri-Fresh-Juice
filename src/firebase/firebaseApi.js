@@ -8,7 +8,7 @@ import {
   query,
   serverTimestamp,
   setDoc,
-  updateDoc
+  updateDoc,
 } from 'firebase/firestore';
 import { ref, uploadBytes, getDownloadURL } from 'firebase/storage';
 import { db, storage } from './config.js';
@@ -16,15 +16,17 @@ import { defaultProducts } from '../data/defaultProducts';
 
 const productsRef = collection(db, 'products');
 const ordersRef = collection(db, 'orders');
+const reviewsRef = collection(db, 'reviews');
 
 export async function getFirebaseProducts() {
   const snapshot = await getDocs(query(productsRef, orderBy('createdAt', 'asc')));
-  return snapshot.docs.map(item => ({ id: item.id, ...item.data() }));
+  return snapshot.docs.map((item) => ({ id: item.id, ...item.data() }));
 }
 
 export async function seedDefaultProductsIfEmpty() {
   const current = await getFirebaseProducts();
   if (current.length) return current;
+
   await Promise.all(defaultProducts.map((product, index) => {
     const safeId = String(product.id || Date.now() + index);
     return setDoc(doc(db, 'products', safeId), {
@@ -35,9 +37,10 @@ export async function seedDefaultProductsIfEmpty() {
       image: product.image,
       badge: product.badge || 'FRESH',
       createdAt: serverTimestamp(),
-      updatedAt: serverTimestamp()
+      updatedAt: serverTimestamp(),
     });
   }));
+
   return getFirebaseProducts();
 }
 
@@ -50,8 +53,9 @@ export async function addFirebaseProduct(product) {
     image: String(product.image || '').trim(),
     badge: String(product.badge || 'NEW').trim(),
     createdAt: serverTimestamp(),
-    updatedAt: serverTimestamp()
+    updatedAt: serverTimestamp(),
   });
+
   return getFirebaseProducts();
 }
 
@@ -63,8 +67,9 @@ export async function updateFirebaseProduct(id, product) {
     price: Number(product.price || 0),
     image: String(product.image || '').trim(),
     badge: String(product.badge || 'FRESH').trim(),
-    updatedAt: serverTimestamp()
+    updatedAt: serverTimestamp(),
   });
+
   return getFirebaseProducts();
 }
 
@@ -78,13 +83,13 @@ export async function saveFirebaseOrder(order) {
     ...order,
     total: Number(order.total || 0),
     createdAt: serverTimestamp(),
-    createdAtText: new Date().toLocaleString()
+    createdAtText: new Date().toLocaleString(),
   });
 }
 
 export async function getFirebaseOrders() {
   const snapshot = await getDocs(query(ordersRef, orderBy('createdAt', 'desc')));
-  return snapshot.docs.map(item => ({ id: item.id, ...item.data() }));
+  return snapshot.docs.map((item) => ({ id: item.id, ...item.data() }));
 }
 
 export async function uploadProductImage(file) {
@@ -93,4 +98,50 @@ export async function uploadProductImage(file) {
   const imageRef = ref(storage, `products/${Date.now()}-${cleanName}`);
   await uploadBytes(imageRef, file);
   return getDownloadURL(imageRef);
+}
+
+/* REVIEWS */
+
+export async function submitFirebaseReview(review) {
+  await addDoc(reviewsRef, {
+    name: String(review.name || '').trim(),
+    message: String(review.message || '').trim(),
+    rating: Number(review.rating || 5),
+    status: 'pending',
+    createdAt: serverTimestamp(),
+    createdAtText: new Date().toLocaleString(),
+  });
+}
+
+export async function getAllFirebaseReviews() {
+  const snapshot = await getDocs(query(reviewsRef, orderBy('createdAt', 'desc')));
+  return snapshot.docs.map((item) => ({ id: item.id, ...item.data() }));
+}
+
+export async function getApprovedFirebaseReviews() {
+  const allReviews = await getAllFirebaseReviews();
+  return allReviews.filter((review) => review.status === 'approved');
+}
+
+export async function approveFirebaseReview(id) {
+  await updateDoc(doc(db, 'reviews', String(id)), {
+    status: 'approved',
+    updatedAt: serverTimestamp(),
+  });
+
+  return getAllFirebaseReviews();
+}
+
+export async function hideFirebaseReview(id) {
+  await updateDoc(doc(db, 'reviews', String(id)), {
+    status: 'pending',
+    updatedAt: serverTimestamp(),
+  });
+
+  return getAllFirebaseReviews();
+}
+
+export async function deleteFirebaseReview(id) {
+  await deleteDoc(doc(db, 'reviews', String(id)));
+  return getAllFirebaseReviews();
 }
