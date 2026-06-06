@@ -1,12 +1,19 @@
 import { useEffect, useMemo, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { motion, AnimatePresence, useMotionValue, useSpring, useTransform } from 'framer-motion';
+
 import Navbar from '../../components/Navbar/Navbar.jsx';
 import Cart from '../../components/Cart/Cart.jsx';
 import Footer from '../../components/Footer/Footer.jsx';
+
 import { getProducts } from '../../utils/storage';
 import { getFirebaseProducts, saveFirebaseOrder } from '../../firebase/firebaseApi';
+
 import orangeImg from '../../assets/orange.png';
+import mangoImg from '../../assets/mango.png';
+import strawberryImg from '../../assets/strawberry.png';
+import lemonImg from '../../assets/lemon.png';
+
 import './AllProducts.css';
 
 const WHATSAPP_NUMBER = import.meta.env.VITE_WHATSAPP_NUMBER || '923079970288';
@@ -20,18 +27,15 @@ const cardVariants = {
   }),
 };
 
-const getCategoryIcon = (category = '', name = '') => {
+const getCategoryImage = (category = '', name = '') => {
   const text = `${category} ${name}`.toLowerCase();
 
-  if (text.includes('mango')) return '🥭';
-  if (text.includes('strawberry')) return '🍓';
-  if (text.includes('orange') || text.includes('citrus')) return '🍊';
-  if (text.includes('lemon')) return '🍋';
-  if (text.includes('shake') || text.includes('smoothie')) return '🥤';
-  if (text.includes('apple')) return '🍎';
-  if (text.includes('grape')) return '🍇';
+  if (text.includes('mango')) return mangoImg;
+  if (text.includes('strawberry')) return strawberryImg;
+  if (text.includes('orange') || text.includes('citrus')) return orangeImg;
+  if (text.includes('lemon')) return lemonImg;
 
-  return '🍹';
+  return orangeImg;
 };
 
 function AllProductCard({ product, index, flyToCart, openQuickView }) {
@@ -52,11 +56,6 @@ function AllProductCard({ product, index, flyToCart, openQuickView }) {
     y.set((e.clientY - rect.top) / rect.height - 0.5);
   };
 
-  const resetTilt = () => {
-    x.set(0);
-    y.set(0);
-  };
-
   return (
     <motion.article
       className="card product-3d-card"
@@ -67,7 +66,10 @@ function AllProductCard({ product, index, flyToCart, openQuickView }) {
       viewport={{ once: true, amount: 0.2 }}
       style={{ rotateX, rotateY, transformPerspective: 1000 }}
       onMouseMove={handleMouseMove}
-      onMouseLeave={resetTilt}
+      onMouseLeave={() => {
+        x.set(0);
+        y.set(0);
+      }}
       whileHover={{ y: -12, scale: 1.02 }}
       transition={{ type: 'spring', stiffness: 220, damping: 18 }}
     >
@@ -81,8 +83,8 @@ function AllProductCard({ product, index, flyToCart, openQuickView }) {
         onClick={() => openQuickView(product)}
         aria-label={`View ${product.name}`}
       >
-        <span className="category-emoji">
-          {getCategoryIcon(product.category, product.name)}
+        <span className="category-fruit">
+          <img src={getCategoryImage(product.category, product.name)} alt="" />
         </span>
 
         <motion.img
@@ -150,19 +152,16 @@ function QuickViewModal({ product, closeQuickView, flyToCart, addToCart }) {
 
           <div className="quick-image-wrap">
             <span className="quick-category">
-              {getCategoryIcon(product.category, product.name)} {product.category || 'Fresh Juice'}
+              <img src={getCategoryImage(product.category, product.name)} alt="" />
+              {product.category || 'Fresh Juice'}
             </span>
 
             <motion.img
               src={product.image}
               alt={product.name}
               className="product-img"
-              initial={{ y: 20, scale: 0.9 }}
-              animate={{ y: [0, -10, 0], scale: 1 }}
-              transition={{
-                y: { duration: 4, repeat: Infinity, ease: 'easeInOut' },
-                scale: { duration: 0.4 },
-              }}
+              animate={{ y: [0, -10, 0] }}
+              transition={{ duration: 4, repeat: Infinity, ease: 'easeInOut' }}
             />
           </div>
 
@@ -235,10 +234,14 @@ export default function AllProducts() {
 
       try {
         const firebaseProducts = await getFirebaseProducts();
-        if (active && firebaseProducts.length) setProducts(firebaseProducts);
+        if (active && firebaseProducts.length) {
+          setProducts(firebaseProducts);
+        }
       } catch (error) {
         console.warn('Firebase products load failed:', error.message);
-        if (active) setProducts(fallbackProducts);
+        if (active) {
+          setProducts(fallbackProducts);
+        }
       }
     }
 
@@ -263,7 +266,9 @@ export default function AllProducts() {
     [products, category]
   );
 
-  const totalItems = useMemo(() => cart.reduce((sum, item) => sum + item.qty, 0), [cart]);
+  const totalItems = useMemo(() => {
+    return cart.reduce((sum, item) => sum + item.qty, 0);
+  }, [cart]);
 
   const addToCart = (product) => {
     setCart((prev) => {
@@ -454,7 +459,8 @@ export default function AllProducts() {
               onClick={() => setCategory(item)}
               type="button"
             >
-              {getCategoryIcon(item)} {item}
+              <img className="filter-fruit-img" src={getCategoryImage(item)} alt="" />
+              {item}
             </button>
           ))}
         </div>
