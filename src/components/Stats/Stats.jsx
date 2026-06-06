@@ -25,7 +25,7 @@ export default function Stats() {
     { value: 5000, suffix: '+', label: 'Orders Served', icon: 'fa-bag-shopping' },
     { value: 100, suffix: '%', label: 'Fresh Ingredients', icon: 'fa-seedling' },
     { value: 50, suffix: '+', label: 'Flavours', icon: 'fa-glass-water' },
-    { value: 49, suffix: '/10', label: 'Customer Rating', icon: 'fa-star' },
+    { value: 10, suffix: '/10', label: 'Customer Rating', icon: 'fa-star' },
   ];
 
   return (
