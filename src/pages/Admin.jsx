@@ -1,147 +1,514 @@
+import { useEffect, useState } from 'react';
+import { Link } from 'react-router-dom';
+import { onAuthStateChanged, signInWithEmailAndPassword, signOut } from 'firebase/auth';
+
 import {
-  addDoc,
-  collection,
-  deleteDoc,
-  doc,
-  getDocs,
-  orderBy,
-  query,
-  serverTimestamp,
-  setDoc,
-  updateDoc,
-} from 'firebase/firestore';
-import { ref, uploadBytes, getDownloadURL } from 'firebase/storage';
-import { db, storage } from './config.js';
-import { defaultProducts } from '../data/defaultProducts';
+  addFirebaseProduct,
+  approveFirebaseReview,
+  deleteFirebaseProduct,
+  deleteFirebaseReview,
+  getAllFirebaseReviews,
+  getFirebaseOrders,
+  getFirebaseProducts,
+  hideFirebaseReview,
+  seedDefaultProductsIfEmpty,
+  updateFirebaseProduct,
+  uploadProductImage,
+} from '../firebase/firebaseApi';
 
-const productsRef = collection(db, 'products');
-const ordersRef = collection(db, 'orders');
-const reviewsRef = collection(db, 'reviews');
+import { auth } from '../firebase/config';
+import mangoFallback from '../assets/mango.png';
+import './Admin.css';
 
-export async function getFirebaseProducts() {
-  const snapshot = await getDocs(query(productsRef, orderBy('createdAt', 'asc')));
-  return snapshot.docs.map((item) => ({ id: item.id, ...item.data() }));
-}
+const emptyForm = {
+  name: '',
+  category: '',
+  description: '',
+  price: '',
+  image: '',
+  badge: 'NEW',
+};
 
-export async function seedDefaultProductsIfEmpty() {
-  const current = await getFirebaseProducts();
-  if (current.length) return current;
+export default function Admin() {
+  const [user, setUser] = useState(null);
+  const [authReady, setAuthReady] = useState(false);
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
 
-  await Promise.all(defaultProducts.map((product, index) => {
-    const safeId = String(product.id || Date.now() + index);
-    return setDoc(doc(db, 'products', safeId), {
-      name: product.name,
-      category: product.category,
-      description: product.description,
-      price: Number(product.price || 0),
-      image: product.image,
-      badge: product.badge || 'FRESH',
-      createdAt: serverTimestamp(),
-      updatedAt: serverTimestamp(),
+  const [products, setProducts] = useState([]);
+  const [orders, setOrders] = useState([]);
+  const [reviews, setReviews] = useState([]);
+
+  const [form, setForm] = useState(emptyForm);
+  const [imageFile, setImageFile] = useState(null);
+  const [editingId, setEditingId] = useState(null);
+
+  const [error, setError] = useState('');
+  const [notice, setNotice] = useState('');
+  const [loading, setLoading] = useState(false);
+
+  useEffect(() => {
+    const unsubscribe = onAuthStateChanged(auth, (currentUser) => {
+      setUser(currentUser);
+      setAuthReady(true);
     });
-  }));
 
-  return getFirebaseProducts();
-}
+    return unsubscribe;
+  }, []);
 
-export async function addFirebaseProduct(product) {
-  await addDoc(productsRef, {
-    name: String(product.name || '').trim(),
-    category: String(product.category || '').trim(),
-    description: String(product.description || '').trim(),
-    price: Number(product.price || 0),
-    image: String(product.image || '').trim(),
-    badge: String(product.badge || 'NEW').trim(),
-    createdAt: serverTimestamp(),
-    updatedAt: serverTimestamp(),
-  });
+  useEffect(() => {
+    if (user) loadAdminData();
+  }, [user]);
 
-  return getFirebaseProducts();
-}
+  const loadAdminData = async () => {
+    setLoading(true);
 
-export async function updateFirebaseProduct(id, product) {
-  await updateDoc(doc(db, 'products', String(id)), {
-    name: String(product.name || '').trim(),
-    category: String(product.category || '').trim(),
-    description: String(product.description || '').trim(),
-    price: Number(product.price || 0),
-    image: String(product.image || '').trim(),
-    badge: String(product.badge || 'FRESH').trim(),
-    updatedAt: serverTimestamp(),
-  });
+    try {
+      const [firebaseProducts, firebaseOrders, firebaseReviews] = await Promise.all([
+        getFirebaseProducts(),
+        getFirebaseOrders(),
+        getAllFirebaseReviews(),
+      ]);
 
-  return getFirebaseProducts();
-}
+      setProducts(firebaseProducts);
+      setOrders(firebaseOrders);
+      setReviews(firebaseReviews);
+      setError('');
+    } catch (err) {
+      setError(
+        err.message ||
+          'Firebase data load nahi ho saka. Firebase config aur security rules check karein.'
+      );
+    } finally {
+      setLoading(false);
+    }
+  };
 
-export async function deleteFirebaseProduct(id) {
-  await deleteDoc(doc(db, 'products', String(id)));
-  return getFirebaseProducts();
-}
+  const login = async (e) => {
+    e.preventDefault();
+    setError('');
+    setLoading(true);
 
-export async function saveFirebaseOrder(order) {
-  await addDoc(ordersRef, {
-    ...order,
-    total: Number(order.total || 0),
-    createdAt: serverTimestamp(),
-    createdAtText: new Date().toLocaleString(),
-  });
-}
+    try {
+      await signInWithEmailAndPassword(auth, email, password);
+      setPassword('');
+    } catch {
+      setError('Invalid email or password. Please try again.');
+    } finally {
+      setLoading(false);
+    }
+  };
 
-export async function getFirebaseOrders() {
-  const snapshot = await getDocs(query(ordersRef, orderBy('createdAt', 'desc')));
-  return snapshot.docs.map((item) => ({ id: item.id, ...item.data() }));
-}
+  const logout = async () => {
+    await signOut(auth);
+    setUser(null);
+    setProducts([]);
+    setOrders([]);
+    setReviews([]);
+  };
 
-export async function uploadProductImage(file) {
-  if (!file) return '';
-  const cleanName = file.name.replace(/[^a-zA-Z0-9._-]/g, '-');
-  const imageRef = ref(storage, `products/${Date.now()}-${cleanName}`);
-  await uploadBytes(imageRef, file);
-  return getDownloadURL(imageRef);
-}
+  const seedProducts = async () => {
+    setError('');
+    setNotice('');
+    setLoading(true);
 
-/* REVIEWS */
+    try {
+      const next = await seedDefaultProductsIfEmpty();
+      setProducts(next);
+      setNotice('Default products Firestore mein seed ho gaye. Agar pehle products thay to duplicate nahi banay.');
+      window.dispatchEvent(new Event('kfj-products-updated'));
+    } catch (err) {
+      setError(err.message || 'Default products seed nahi ho sakay.');
+    } finally {
+      setLoading(false);
+    }
+  };
 
-export async function submitFirebaseReview(review) {
-  await addDoc(reviewsRef, {
-    name: String(review.name || '').trim(),
-    message: String(review.message || '').trim(),
-    rating: Number(review.rating || 5),
-    status: 'pending',
-    createdAt: serverTimestamp(),
-    createdAtText: new Date().toLocaleString(),
-  });
-}
+  const submit = async (e) => {
+    e.preventDefault();
+    setError('');
+    setNotice('');
+    setLoading(true);
 
-export async function getAllFirebaseReviews() {
-  const snapshot = await getDocs(query(reviewsRef, orderBy('createdAt', 'desc')));
-  return snapshot.docs.map((item) => ({ id: item.id, ...item.data() }));
-}
+    try {
+      let imageUrl = form.image;
 
-export async function getApprovedFirebaseReviews() {
-  const allReviews = await getAllFirebaseReviews();
-  return allReviews.filter((review) => review.status === 'approved');
-}
+      if (imageFile) {
+        imageUrl = await uploadProductImage(imageFile);
+      }
 
-export async function approveFirebaseReview(id) {
-  await updateDoc(doc(db, 'reviews', String(id)), {
-    status: 'approved',
-    updatedAt: serverTimestamp(),
-  });
+      const product = {
+        ...form,
+        price: Number(form.price),
+        image: imageUrl || mangoFallback,
+      };
 
-  return getAllFirebaseReviews();
-}
+      const next = editingId
+        ? await updateFirebaseProduct(editingId, product)
+        : await addFirebaseProduct(product);
 
-export async function hideFirebaseReview(id) {
-  await updateDoc(doc(db, 'reviews', String(id)), {
-    status: 'pending',
-    updatedAt: serverTimestamp(),
-  });
+      setProducts(next);
+      setForm(emptyForm);
+      setImageFile(null);
+      setEditingId(null);
+      setNotice('Product Firebase mein save ho gaya. View Full Menu mein show hoga.');
+      window.dispatchEvent(new Event('kfj-products-updated'));
+    } catch (err) {
+      setError(err.message || 'Product save nahi ho saka. Firestore/Storage rules check karein.');
+    } finally {
+      setLoading(false);
+    }
+  };
 
-  return getAllFirebaseReviews();
-}
+  const edit = (product) => {
+    setEditingId(product.id);
+    setForm({ ...product });
+    setImageFile(null);
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  };
 
-export async function deleteFirebaseReview(id) {
-  await deleteDoc(doc(db, 'reviews', String(id)));
-  return getAllFirebaseReviews();
+  const del = async (id) => {
+    if (!confirm('Delete this product?')) return;
+
+    setError('');
+    setNotice('');
+    setLoading(true);
+
+    try {
+      const next = await deleteFirebaseProduct(id);
+      setProducts(next);
+      setNotice('Product delete ho gaya.');
+      window.dispatchEvent(new Event('kfj-products-updated'));
+    } catch (err) {
+      setError(err.message || 'Delete failed.');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const approveReview = async (id) => {
+    setError('');
+    setNotice('');
+    setLoading(true);
+
+    try {
+      const next = await approveFirebaseReview(id);
+      setReviews(next);
+      setNotice('Review approved ho gaya. Ab website par show hoga.');
+    } catch (err) {
+      setError(err.message || 'Review approve nahi ho saka.');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const hideReview = async (id) => {
+    setError('');
+    setNotice('');
+    setLoading(true);
+
+    try {
+      const next = await hideFirebaseReview(id);
+      setReviews(next);
+      setNotice('Review pending mein move ho gaya.');
+    } catch (err) {
+      setError(err.message || 'Review hide nahi ho saka.');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const removeReview = async (id) => {
+    if (!confirm('Delete this review?')) return;
+
+    setError('');
+    setNotice('');
+    setLoading(true);
+
+    try {
+      const next = await deleteFirebaseReview(id);
+      setReviews(next);
+      setNotice('Review delete ho gaya.');
+    } catch (err) {
+      setError(err.message || 'Review delete nahi ho saka.');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  if (!authReady) {
+    return (
+      <main className="admin-page">
+        <div className="admin-login glass">
+          <h1>Loading...</h1>
+        </div>
+      </main>
+    );
+  }
+
+  if (!user) {
+    return (
+      <main className="admin-page">
+        <form className="admin-login glass" onSubmit={login}>
+          <h1>Kashmiri Fresh Juices</h1>
+          <small>SECURE ADMIN LOGIN</small>
+
+          <input
+            type="email"
+            placeholder="Admin email"
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
+            required
+          />
+
+          <input
+            type="password"
+            placeholder="Admin password"
+            value={password}
+            onChange={(e) => setPassword(e.target.value)}
+            required
+          />
+
+          {error && <p className="admin-error">{error}</p>}
+
+          <button className="whatsapp" type="submit" disabled={loading}>
+            {loading ? 'Checking...' : 'Login'}
+          </button>
+
+          <Link className="outline" to="/">
+            Back to Website
+          </Link>
+        </form>
+      </main>
+    );
+  }
+
+  const pendingReviews = reviews.filter((review) => review.status !== 'approved');
+  const approvedReviews = reviews.filter((review) => review.status === 'approved');
+
+  return (
+    <main className="admin-page">
+      <div className="admin-header">
+        <div>
+          <small>PRODUCT MANAGEMENT</small>
+          <h1>Admin Panel</h1>
+          <p className="admin-status">Logged in: {user.email}</p>
+        </div>
+
+        <div>
+          <Link className="outline" to="/">
+            Website
+          </Link>
+
+          <button className="outline" onClick={seedProducts} disabled={loading}>
+            Seed Default Products
+          </button>
+
+          <button className="whatsapp" onClick={logout}>
+            Logout
+          </button>
+        </div>
+      </div>
+
+      {error && <p className="admin-error wide">{error}</p>}
+      {notice && <p className="admin-success wide">{notice}</p>}
+
+      <section className="admin-grid">
+        <form className="product-form glass" onSubmit={submit}>
+          <h2>{editingId ? 'Edit Product' : 'Add Product'}</h2>
+
+          <input
+            placeholder="Product Name"
+            value={form.name}
+            onChange={(e) => setForm({ ...form, name: e.target.value })}
+            required
+          />
+
+          <select
+            value={form.category}
+            onChange={(e) => setForm({ ...form, category: e.target.value })}
+            required
+          >
+            <option value="">Select Category</option>
+            <option value="Special Juice">Special Juice</option>
+            <option value="Citrus Juice">Citrus Juice</option>
+            <option value="Fresh Juice">Fresh Juice</option>
+            <option value="Seasonal Juice">Seasonal Juice</option>
+            <option value="Smoothie">Smoothie</option>
+            <option value="Mint Juice">Mint Juice</option>
+          </select>
+
+          <input
+            placeholder="Description"
+            value={form.description}
+            onChange={(e) => setForm({ ...form, description: e.target.value })}
+            required
+          />
+
+          <input
+            type="number"
+            placeholder="Price"
+            value={form.price}
+            onChange={(e) => setForm({ ...form, price: e.target.value })}
+            required
+          />
+
+          <input
+            placeholder="Image URL. Optional if uploading file"
+            value={form.image}
+            onChange={(e) => setForm({ ...form, image: e.target.value })}
+          />
+
+          <input
+            type="file"
+            accept="image/*"
+            onChange={(e) => setImageFile(e.target.files?.[0] || null)}
+          />
+
+          <input
+            placeholder="Badge"
+            value={form.badge}
+            onChange={(e) => setForm({ ...form, badge: e.target.value })}
+          />
+
+          <button className="whatsapp" type="submit" disabled={loading}>
+            {loading ? 'Saving...' : editingId ? 'Update Product' : 'Add Product'}
+          </button>
+
+          {editingId && (
+            <button
+              type="button"
+              className="outline"
+              onClick={() => {
+                setEditingId(null);
+                setForm(emptyForm);
+                setImageFile(null);
+              }}
+            >
+              Cancel Edit
+            </button>
+          )}
+
+          <p className="security-note">
+            New product Firestore mein save hoga aur /all-products page par show hoga.
+          </p>
+        </form>
+
+        <div className="admin-list glass">
+          <h2>Products</h2>
+
+          {products.length === 0 && (
+            <p>No products found. Seed Default Products ya Add Product use karein.</p>
+          )}
+
+          {products.map((product) => (
+            <div className="admin-product" key={product.id}>
+              <img src={product.image} alt={product.name} />
+
+              <div>
+                <b>{product.name}</b>
+                <span>
+                  {product.category} | Rs. {product.price}
+                </span>
+              </div>
+
+              <button onClick={() => edit(product)}>Edit</button>
+              <button onClick={() => del(product.id)}>Delete</button>
+            </div>
+          ))}
+        </div>
+      </section>
+
+      <section className="reviews-admin glass">
+        <div className="reviews-admin-head">
+          <div>
+            <small>REVIEW MODERATION</small>
+            <h2>Customer Reviews</h2>
+          </div>
+
+          <button className="outline" onClick={loadAdminData} disabled={loading}>
+            Refresh
+          </button>
+        </div>
+
+        <div className="review-columns">
+          <div>
+            <h3>Pending Reviews ({pendingReviews.length})</h3>
+
+            {pendingReviews.length === 0 ? (
+              <p>No pending reviews.</p>
+            ) : (
+              pendingReviews.map((review) => (
+                <div className="admin-review-card pending" key={review.id}>
+                  <div className="review-meta">
+                    <b>{review.name}</b>
+                    <span>{review.createdAtText || 'Firebase timestamp'}</span>
+                  </div>
+
+                  <div className="admin-stars">{'★'.repeat(Number(review.rating || 5))}</div>
+                  <p>{review.message}</p>
+
+                  <div className="review-actions">
+                    <button onClick={() => approveReview(review.id)}>Approve</button>
+                    <button className="danger" onClick={() => removeReview(review.id)}>
+                      Delete
+                    </button>
+                  </div>
+                </div>
+              ))
+            )}
+          </div>
+
+          <div>
+            <h3>Approved Reviews ({approvedReviews.length})</h3>
+
+            {approvedReviews.length === 0 ? (
+              <p>No approved reviews yet.</p>
+            ) : (
+              approvedReviews.map((review) => (
+                <div className="admin-review-card approved" key={review.id}>
+                  <div className="review-meta">
+                    <b>{review.name}</b>
+                    <span>{review.createdAtText || 'Firebase timestamp'}</span>
+                  </div>
+
+                  <div className="admin-stars">{'★'.repeat(Number(review.rating || 5))}</div>
+                  <p>{review.message}</p>
+
+                  <div className="review-actions">
+                    <button onClick={() => hideReview(review.id)}>Move to Pending</button>
+                    <button className="danger" onClick={() => removeReview(review.id)}>
+                      Delete
+                    </button>
+                  </div>
+                </div>
+              ))
+            )}
+          </div>
+        </div>
+      </section>
+
+      <section className="orders glass">
+        <h2>Recent Orders</h2>
+
+        {orders.length === 0 ? (
+          <p>No orders yet.</p>
+        ) : (
+          orders.map((order) => (
+            <div className="order-card" key={order.id}>
+              <b>
+                {order.customer?.name} - Rs. {order.total}
+              </b>
+              <span>{order.createdAtText || 'Firebase timestamp'}</span>
+              <p>
+                {order.customer?.phone}
+                <br />
+                {order.customer?.address}
+              </p>
+            </div>
+          ))
+        )}
+      </section>
+    </main>
+  );
 }
