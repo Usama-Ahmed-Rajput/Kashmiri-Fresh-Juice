@@ -1,0 +1,28 @@
+.custom-cursor {
+  position: fixed;
+  width: 18px;
+  height: 18px;
+  left: 0;
+  top: 0;
+  border-radius: 50% 50% 50% 0;
+  background: rgba(142, 226, 53, 0.9);
+  transform: translate(-50%, -50%) rotate(-45deg);
+  z-index: 999999;
+  pointer-events: none;
+  box-shadow:
+    0 0 18px rgba(142, 226, 53, 0.8),
+    0 0 34px rgba(142, 226, 53, 0.35);
+  transition: width 0.18s ease, height 0.18s ease, opacity 0.18s ease;
+}
+
+.custom-cursor.active {
+  width: 34px;
+  height: 34px;
+  opacity: 0.75;
+}
+
+@media (max-width: 980px) {
+  .custom-cursor {
+    display: none;
+  }
+}

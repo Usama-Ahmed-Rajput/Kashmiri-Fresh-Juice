@@ -1,0 +1,26 @@
+.sticky-order {
+  position: fixed;
+  left: 14px;
+  right: 14px;
+  bottom: 14px;
+  z-index: 9998;
+  display: none;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  padding: 14px 18px;
+  border-radius: 999px;
+  background: linear-gradient(180deg, #95eb32, #2d8504);
+  color: #fff;
+  font-weight: 900;
+  text-transform: uppercase;
+  box-shadow:
+    0 18px 38px rgba(131, 255, 0, 0.26),
+    0 10px 25px rgba(0, 0, 0, 0.45);
+}
+
+@media (max-width: 768px) {
+  .sticky-order {
+    display: flex;
+  }
+}
