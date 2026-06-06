@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from 'react';
 import { Link } from 'react-router-dom';
-import { motion, useMotionValue, useSpring, useTransform } from 'framer-motion';
+import { motion, AnimatePresence, useMotionValue, useSpring, useTransform } from 'framer-motion';
 import Navbar from '../../components/Navbar/Navbar';
 import Cart from '../../components/Cart/Cart';
 import Footer from '../../components/Footer/Footer';
@@ -20,33 +20,35 @@ const cardVariants = {
   }),
 };
 
-function AllProductCard({ product, index, flyToCart }) {
+const getCategoryIcon = (category = '', name = '') => {
+  const text = `${category} ${name}`.toLowerCase();
+  if (text.includes('mango')) return '🥭';
+  if (text.includes('strawberry')) return '🍓';
+  if (text.includes('orange') || text.includes('citrus')) return '🍊';
+  if (text.includes('lemon')) return '🍋';
+  if (text.includes('shake') || text.includes('smoothie')) return '🥤';
+  if (text.includes('apple')) return '🍎';
+  return '🍹';
+};
+
+function AllProductCard({ product, index, flyToCart, openQuickView }) {
   const x = useMotionValue(0);
   const y = useMotionValue(0);
-
   const smoothX = useSpring(x, { stiffness: 180, damping: 18 });
   const smoothY = useSpring(y, { stiffness: 180, damping: 18 });
-
   const rotateY = useTransform(smoothX, [-0.5, 0.5], [-9, 9]);
   const rotateX = useTransform(smoothY, [-0.5, 0.5], [9, -9]);
 
   const handleMouseMove = (e) => {
     if (window.innerWidth <= 980) return;
-
     const rect = e.currentTarget.getBoundingClientRect();
     x.set((e.clientX - rect.left) / rect.width - 0.5);
     y.set((e.clientY - rect.top) / rect.height - 0.5);
   };
 
-  const resetTilt = () => {
-    x.set(0);
-    y.set(0);
-  };
-
   return (
     <motion.article
       className="card product-3d-card"
-      key={product.id}
       custom={index}
       variants={cardVariants}
       initial="hidden"
@@ -54,27 +56,39 @@ function AllProductCard({ product, index, flyToCart }) {
       viewport={{ once: true, amount: 0.2 }}
       style={{ rotateX, rotateY, transformPerspective: 1000 }}
       onMouseMove={handleMouseMove}
-      onMouseLeave={resetTilt}
+      onMouseLeave={() => {
+        x.set(0);
+        y.set(0);
+      }}
       whileHover={{ y: -12, scale: 1.02 }}
       transition={{ type: 'spring', stiffness: 220, damping: 18 }}
     >
       <span className="card-shine"></span>
-
       <label>{product.badge || 'FRESH'}</label>
 
-      <motion.img
-        src={product.image}
-        alt={product.name}
-        className="product-img"
-        whileHover={{ scale: 1.13, y: -14, rotateZ: -2 }}
-        transition={{ type: 'spring', stiffness: 220, damping: 16 }}
-      />
+      <button
+        type="button"
+        className="product-image-btn"
+        onClick={() => openQuickView(product)}
+      >
+        <span className="category-emoji">
+          {getCategoryIcon(product.category, product.name)}
+        </span>
+        <motion.img
+          src={product.image}
+          alt={product.name}
+          className="product-img"
+          whileHover={{ scale: 1.13, y: -14, rotateZ: -2 }}
+          transition={{ type: 'spring', stiffness: 220, damping: 16 }}
+        />
+      </button>
 
       <h3>{product.name}</h3>
       <p>{product.description}</p>
       <strong>Rs. {product.price}</strong>
 
       <motion.button
+        className="add-cart-btn"
         whileHover={{ y: -3, scale: 1.02 }}
         whileTap={{ scale: 0.95 }}
         onClick={(e) => flyToCart(product, e)}
@@ -85,9 +99,101 @@ function AllProductCard({ product, index, flyToCart }) {
   );
 }
 
+function QuickViewModal({ product, closeQuickView, flyToCart, addToCart }) {
+  useEffect(() => {
+    const closeOnEsc = (e) => {
+      if (e.key === 'Escape') closeQuickView();
+    };
+
+    document.addEventListener('keydown', closeOnEsc);
+    document.body.style.overflow = 'hidden';
+
+    return () => {
+      document.removeEventListener('keydown', closeOnEsc);
+      document.body.style.overflow = '';
+    };
+  }, [closeQuickView]);
+
+  if (!product) return null;
+
+  return (
+    <AnimatePresence>
+      <motion.div
+        className="quick-view-overlay"
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        exit={{ opacity: 0 }}
+        onClick={closeQuickView}
+      >
+        <motion.div
+          className="quick-view-modal"
+          initial={{ opacity: 0, y: 40, scale: 0.92, rotateX: 10 }}
+          animate={{ opacity: 1, y: 0, scale: 1, rotateX: 0 }}
+          exit={{ opacity: 0, y: 30, scale: 0.94 }}
+          transition={{ type: 'spring', stiffness: 180, damping: 18 }}
+          onClick={(e) => e.stopPropagation()}
+        >
+          <button className="quick-close" onClick={closeQuickView} type="button">
+            <i className="fa-solid fa-xmark"></i>
+          </button>
+
+          <div className="quick-image-wrap">
+            <span className="quick-category">
+              {getCategoryIcon(product.category, product.name)} {product.category || 'Fresh Juice'}
+            </span>
+            <motion.img
+              src={product.image}
+              alt={product.name}
+              className="product-img"
+              animate={{ y: [0, -10, 0] }}
+              transition={{ duration: 4, repeat: Infinity, ease: 'easeInOut' }}
+            />
+          </div>
+
+          <div className="quick-content">
+            <small>{product.badge || 'FRESH & NATURAL'}</small>
+            <h3>{product.name}</h3>
+            <p>{product.description || 'Freshly prepared with premium quality fruits.'}</p>
+            <strong>Rs. {product.price}</strong>
+
+            <div className="quick-actions">
+              <motion.button
+                className="quick-cart"
+                whileHover={{ y: -3, scale: 1.02 }}
+                whileTap={{ scale: 0.95 }}
+                onClick={(e) => {
+                  flyToCart(product, e);
+                  closeQuickView();
+                }}
+                type="button"
+              >
+                <i className="fa-solid fa-cart-plus"></i> Add to Cart
+              </motion.button>
+
+              <motion.button
+                className="quick-simple"
+                whileHover={{ y: -3, scale: 1.02 }}
+                whileTap={{ scale: 0.95 }}
+                onClick={() => {
+                  addToCart(product);
+                  closeQuickView();
+                }}
+                type="button"
+              >
+                Quick Add
+              </motion.button>
+            </div>
+          </div>
+        </motion.div>
+      </motion.div>
+    </AnimatePresence>
+  );
+}
+
 export default function AllProducts() {
   const [products, setProducts] = useState([]);
   const [category, setCategory] = useState('All');
+  const [quickProduct, setQuickProduct] = useState(null);
 
   const [cart, setCart] = useState(() => {
     try {
@@ -141,28 +247,23 @@ export default function AllProducts() {
     [products, category]
   );
 
-  const totalItems = useMemo(
-    () => cart.reduce((sum, item) => sum + item.qty, 0),
-    [cart]
-  );
+  const totalItems = useMemo(() => cart.reduce((sum, item) => sum + item.qty, 0), [cart]);
 
   const addToCart = (product) => {
     setCart((prev) => {
       const existing = prev.find((item) => item.id === product.id);
-
       if (existing) {
         return prev.map((item) =>
           item.id === product.id ? { ...item, qty: item.qty + 1 } : item
         );
       }
-
       return [...prev, { ...product, qty: 1 }];
     });
   };
 
   const flyToCart = (product, e) => {
-    const card = e.currentTarget.closest('.card');
-    const productImg = card?.querySelector('.product-img');
+    const card = e.currentTarget.closest('.card, .quick-view-modal');
+    const productImg = card?.querySelector('.product-img, .quick-image-wrap img');
     const cartBtn = document.querySelector('.cart-top');
 
     if (!productImg || !cartBtn) {
@@ -172,36 +273,26 @@ export default function AllProducts() {
 
     const imgRect = productImg.getBoundingClientRect();
     const isMobile = window.innerWidth <= 600;
-
     const animationDuration = isMobile ? 1700 : 1450;
     const scrollDelay = isMobile ? 420 : 300;
 
     const flyingImg = document.createElement('img');
     flyingImg.src = product.image;
     flyingImg.className = 'fly-cart-img';
-
     flyingImg.style.left = `${imgRect.left}px`;
     flyingImg.style.top = `${imgRect.top}px`;
     flyingImg.style.width = `${imgRect.width}px`;
     flyingImg.style.height = `${imgRect.height}px`;
-
     document.body.appendChild(flyingImg);
 
-    cartBtn.scrollIntoView({
-      behavior: 'smooth',
-      block: 'start',
-      inline: 'nearest',
-    });
+    cartBtn.scrollIntoView({ behavior: 'smooth', block: 'start', inline: 'nearest' });
 
     setTimeout(() => {
       const cartRect = cartBtn.getBoundingClientRect();
-
       const startX = imgRect.left;
       const startY = imgRect.top;
-
       const endX = cartRect.left + cartRect.width / 2 - 18;
       const endY = cartRect.top + cartRect.height / 2 - 18;
-
       const midX = startX + (endX - startX) * 0.5;
       const midY = Math.min(startY, endY) - 130;
 
@@ -243,7 +334,6 @@ export default function AllProducts() {
     setTimeout(() => {
       flyingImg.remove();
       addToCart(product);
-
       cartBtn.classList.add('cart-bounce');
       setTimeout(() => cartBtn.classList.remove('cart-bounce'), 550);
     }, animationDuration + scrollDelay);
@@ -284,7 +374,6 @@ export default function AllProducts() {
     )}%0A%0AOrder:%0A${items}%0A%0ATotal: Rs. ${total}`;
 
     window.open(`https://wa.me/${WHATSAPP_NUMBER}?text=${message}`, '_blank');
-
     setCart([]);
     localStorage.removeItem('kfj-cart');
     setCartOpen(false);
@@ -337,7 +426,7 @@ export default function AllProducts() {
               onClick={() => setCategory(item)}
               type="button"
             >
-              {item}
+              {getCategoryIcon(item)} {item}
             </button>
           ))}
         </div>
@@ -349,6 +438,7 @@ export default function AllProducts() {
               product={product}
               index={index}
               flyToCart={flyToCart}
+              openQuickView={setQuickProduct}
             />
           ))}
         </div>
@@ -364,6 +454,15 @@ export default function AllProducts() {
         removeItem={removeItem}
         checkout={checkout}
       />
+
+      {quickProduct && (
+        <QuickViewModal
+          product={quickProduct}
+          closeQuickView={() => setQuickProduct(null)}
+          flyToCart={flyToCart}
+          addToCart={addToCart}
+        />
+      )}
     </main>
   );
 }
