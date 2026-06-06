@@ -1,24 +1,70 @@
 .hero {
+  width: 100%;
+  max-width: 100%;
   min-height: 640px;
   position: relative;
   padding: 92px 64px 14px;
   background-position: center;
   background-size: cover;
   background-repeat: no-repeat;
+  overflow: hidden;
+  box-sizing: border-box;
 }
-.hero:after {
+
+.hero::before {
   content: "";
   position: absolute;
   inset: 0;
   background:
-    radial-gradient(
-      circle at 73% 37%,
-      rgba(104, 207, 0, 0.18),
-      transparent 35%
-    ),
-    linear-gradient(180deg, transparent 70%, #001905 100%);
+    radial-gradient(circle at 72% 38%, rgba(145, 230, 50, 0.22), transparent 32%),
+    radial-gradient(circle at 84% 70%, rgba(255, 176, 0, 0.12), transparent 24%),
+    linear-gradient(180deg, transparent 68%, #001905 100%);
   pointer-events: none;
+  z-index: 0;
 }
+
+.hero::after {
+  content: "";
+  position: absolute;
+  inset: auto 0 0;
+  height: 160px;
+  background: linear-gradient(180deg, transparent, #000d04);
+  pointer-events: none;
+  z-index: 0;
+}
+
+.hero-glow {
+  position: absolute;
+  border-radius: 999px;
+  filter: blur(28px);
+  pointer-events: none;
+  z-index: 0;
+}
+
+.hero-glow-one {
+  width: 280px;
+  height: 280px;
+  right: 12%;
+  top: 22%;
+  background: rgba(145, 230, 50, 0.2);
+}
+
+.hero-glow-two {
+  width: 160px;
+  height: 160px;
+  right: 34%;
+  bottom: 14%;
+  background: rgba(255, 191, 0, 0.14);
+}
+
+.fruit-particles {
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  pointer-events: none;
+  opacity: 0.72;
+}
+
 .hero-content {
   position: relative;
   z-index: 1;
@@ -26,20 +72,32 @@
   grid-template-columns: 47% 53%;
   align-items: center;
   min-height: 535px;
+  max-width: 100%;
+  box-sizing: border-box;
 }
+
+.hero-text,
+.hero-image-wrap {
+  max-width: 100%;
+  box-sizing: border-box;
+}
+
 .hero-text {
   padding-top: 18px;
 }
+
 .tagline {
   font-family: Pacifico, cursive;
   font-size: 32px;
   letter-spacing: 0.3px;
   text-shadow: 0 3px 13px #000;
 }
+
 .tagline i {
   color: #86df2a;
   font-size: 20px;
 }
+
 .hero h1 {
   font-family: "Bebas Neue", Impact, sans-serif;
   font-size: 88px;
@@ -51,6 +109,7 @@
     0 5px 8px #000,
     0 1px 0 #fff;
 }
+
 .hero h1 span {
   display: inline-block;
   color: #92df32;
@@ -58,6 +117,7 @@
     0 5px 8px #000,
     0 0 18px rgba(145, 230, 50, 0.55);
 }
+
 .divider {
   display: flex;
   align-items: center;
@@ -66,28 +126,33 @@
   width: 310px;
   margin: 18px 0 24px;
 }
+
 .divider span {
   height: 2px;
   flex: 1;
   background: linear-gradient(90deg, transparent, #93df32, transparent);
 }
+
 .desc {
   font-size: 19px;
   line-height: 1.6;
   text-shadow: 0 3px 12px #000;
 }
+
 .feature-row {
   display: grid;
   grid-template-columns: repeat(4, 1fr);
   gap: 14px;
   margin: 22px 0 20px;
   max-width: 430px;
+  perspective: 900px;
 }
+
 .feature-row div {
   height: 82px;
   border: 1px solid rgba(156, 225, 58, 0.35);
   border-radius: 16px;
-  background: rgba(0, 0, 0, 0.48);
+  background: linear-gradient(145deg, rgba(0, 0, 0, 0.62), rgba(25, 72, 11, 0.28));
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -95,26 +160,67 @@
   text-align: center;
   font-size: 10px;
   font-weight: 800;
-  box-shadow: inset 0 0 22px rgba(134, 255, 30, 0.08);
+  box-shadow:
+    inset 0 0 22px rgba(134, 255, 30, 0.08),
+    0 14px 30px rgba(0, 0, 0, 0.28);
+  transform-style: preserve-3d;
+  will-change: transform;
 }
+
 .feature-row i {
   font-size: 28px;
   color: #8fe12f;
   margin-bottom: 8px;
+  transform: translateZ(18px);
 }
+
+.feature-row b {
+  transform: translateZ(14px);
+}
+
 .buttons {
   display: flex;
   gap: 22px;
   flex-wrap: wrap;
 }
+
+.buttons a {
+  transform-style: preserve-3d;
+  box-shadow: 0 16px 35px rgba(0, 0, 0, 0.26);
+}
+
 .hero-image-wrap {
   position: relative;
+  transform-style: preserve-3d;
+  will-change: transform;
+  perspective: 1000px;
 }
+
+.juice-plate {
+  position: absolute;
+  width: 62%;
+  height: 110px;
+  left: 17%;
+  bottom: 38px;
+  border-radius: 50%;
+  background: radial-gradient(circle, rgba(143, 226, 54, 0.3), rgba(0, 0, 0, 0) 68%);
+  filter: blur(2px);
+  transform: translateZ(-80px) rotateX(68deg);
+  z-index: 0;
+}
+
 .hero-image {
+  position: relative;
+  z-index: 2;
   width: 103%;
   transform: translate(-12px, 6px);
-  filter: drop-shadow(0 24px 38px #000);
+  filter:
+    drop-shadow(0 24px 38px #000)
+    drop-shadow(0 0 18px rgba(145, 230, 50, 0.18));
+  transform-style: preserve-3d;
+  will-change: transform;
 }
+
 .natural-badge {
   position: absolute;
   right: 12px;
@@ -123,96 +229,60 @@
   height: 116px;
   border: 1px solid #8bdc34;
   border-radius: 50%;
-  background: rgba(0, 12, 4, 0.45);
+  background:
+    radial-gradient(circle at 30% 20%, rgba(255, 255, 255, 0.18), transparent 28%),
+    rgba(0, 12, 4, 0.58);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
   text-transform: uppercase;
-  box-shadow: 0 0 25px rgba(139, 220, 52, 0.22);
+  box-shadow:
+    0 0 25px rgba(139, 220, 52, 0.22),
+    0 18px 38px rgba(0, 0, 0, 0.36);
+  z-index: 3;
+  transform-style: preserve-3d;
 }
+
 .natural-badge i {
   color: #8fe236;
   font-size: 22px;
 }
+
 .natural-badge b {
   font-size: 34px;
 }
+
 .natural-badge span {
   font-weight: 800;
   color: #9ae541;
 }
-@media (max-width: 980px) {
-  .hero {
-    padding: 22px;
-    min-height: auto;
-  }
-  .hero-content {
-    grid-template-columns: 1fr;
-  }
-  .hero h1 {
-    font-size: 70px;
-  }
-  .hero-image {
-    width: 100%;
-    transform: none;
-  }
-  .natural-badge {
-    right: 20px;
-    top: 110px;
-  }
-  .feature-row {
-    grid-template-columns: repeat(2, 1fr);
-    max-width: 100%;
-  }
-}
 
-.fruit-particles {
+.floating-drop {
   position: absolute;
-  inset: 0;
-  z-index: 0;
-  pointer-events: none;
-  opacity: 0.72;
-}
-.hero-content {
-  position: relative;
+  border-radius: 50%;
   z-index: 1;
-}
-.hero:after {
-  content: "";
-  position: absolute;
-  inset: auto 0 0;
-  height: 160px;
-  background: linear-gradient(180deg, transparent, #000d04);
   pointer-events: none;
-  z-index: 0;
-}
-@media (max-width: 980px) {
-  .fruit-particles {
-    opacity: 0.38;
-  }
-}
-@media (prefers-reduced-motion: reduce) {
-  .fruit-particles {
-    display: none;
-  }
-  .hero-image {
-    animation: none !important;
-  }
+  filter: blur(0.2px);
+  box-shadow: 0 0 18px rgba(145, 230, 50, 0.18);
 }
 
-.hero {
-  width: 100%;
-  max-width: 100%;
-  overflow: hidden;
-  box-sizing: border-box;
+.drop-one {
+  width: 18px;
+  height: 18px;
+  right: 18%;
+  top: 22%;
+  background: linear-gradient(145deg, #b7ff55, #4f9d14);
 }
 
-.hero-content,
-.hero-text,
-.hero-image-wrap {
-  max-width: 100%;
-  box-sizing: border-box;
+.drop-two {
+  width: 13px;
+  height: 13px;
+  left: 20%;
+  bottom: 26%;
+  background: linear-gradient(145deg, #ffcc4d, #8bdc34);
 }
 
 @media (max-width: 980px) {
@@ -220,7 +290,12 @@
     width: 100%;
     max-width: 100%;
     padding: 95px 18px 30px;
+    min-height: auto;
     overflow: hidden;
+  }
+
+  .fruit-particles {
+    opacity: 0.38;
   }
 
   .hero-content {
@@ -275,13 +350,40 @@
 
   .hero-image-wrap {
     width: 100%;
-    overflow: hidden;
+    overflow: visible;
+    transform: none !important;
   }
 
   .hero-image {
     width: 100%;
     max-width: 100%;
     transform: none !important;
+  }
+
+  .natural-badge {
+    right: 20px;
+    top: 110px;
+    width: 96px;
+    height: 96px;
+  }
+
+  .natural-badge b {
+    font-size: 28px;
+  }
+
+  .juice-plate {
+    width: 76%;
+    left: 12%;
+    bottom: 18px;
+  }
+
+  .hero-glow-one {
+    right: -60px;
+    top: 38%;
+  }
+
+  .hero-glow-two {
+    display: none;
   }
 }
 
@@ -304,5 +406,37 @@
 
   .feature-row div {
     min-width: 0;
+  }
+
+  .natural-badge {
+    width: 84px;
+    height: 84px;
+    top: 92px;
+    right: 8px;
+  }
+
+  .natural-badge i {
+    font-size: 18px;
+  }
+
+  .natural-badge b {
+    font-size: 24px;
+  }
+
+  .natural-badge span {
+    font-size: 11px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .fruit-particles,
+  .hero-glow,
+  .floating-drop {
+    display: none;
+  }
+
+  .hero-image,
+  .natural-badge {
+    animation: none !important;
   }
 }
