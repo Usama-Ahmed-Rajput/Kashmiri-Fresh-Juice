@@ -1,9 +1,9 @@
 import { useEffect, useMemo, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { motion, AnimatePresence, useMotionValue, useSpring, useTransform } from 'framer-motion';
-import Navbar from '../../components/Navbar/Navbar';
-import Cart from '../../components/Cart/Cart';
-import Footer from '../../components/Footer/Footer';
+import Navbar from '../../components/Navbar/Navbar.jsx';
+import Cart from '../../components/Cart/Cart.jsx';
+import Footer from '../../components/Footer/Footer.jsx';
 import { getProducts } from '../../utils/storage';
 import { getFirebaseProducts, saveFirebaseOrder } from '../../firebase/firebaseApi';
 import orangeImg from '../../assets/orange.png';
@@ -22,28 +22,39 @@ const cardVariants = {
 
 const getCategoryIcon = (category = '', name = '') => {
   const text = `${category} ${name}`.toLowerCase();
+
   if (text.includes('mango')) return '🥭';
   if (text.includes('strawberry')) return '🍓';
   if (text.includes('orange') || text.includes('citrus')) return '🍊';
   if (text.includes('lemon')) return '🍋';
   if (text.includes('shake') || text.includes('smoothie')) return '🥤';
   if (text.includes('apple')) return '🍎';
+  if (text.includes('grape')) return '🍇';
+
   return '🍹';
 };
 
 function AllProductCard({ product, index, flyToCart, openQuickView }) {
   const x = useMotionValue(0);
   const y = useMotionValue(0);
+
   const smoothX = useSpring(x, { stiffness: 180, damping: 18 });
   const smoothY = useSpring(y, { stiffness: 180, damping: 18 });
+
   const rotateY = useTransform(smoothX, [-0.5, 0.5], [-9, 9]);
   const rotateX = useTransform(smoothY, [-0.5, 0.5], [9, -9]);
 
   const handleMouseMove = (e) => {
     if (window.innerWidth <= 980) return;
+
     const rect = e.currentTarget.getBoundingClientRect();
     x.set((e.clientX - rect.left) / rect.width - 0.5);
     y.set((e.clientY - rect.top) / rect.height - 0.5);
+  };
+
+  const resetTilt = () => {
+    x.set(0);
+    y.set(0);
   };
 
   return (
@@ -56,24 +67,24 @@ function AllProductCard({ product, index, flyToCart, openQuickView }) {
       viewport={{ once: true, amount: 0.2 }}
       style={{ rotateX, rotateY, transformPerspective: 1000 }}
       onMouseMove={handleMouseMove}
-      onMouseLeave={() => {
-        x.set(0);
-        y.set(0);
-      }}
+      onMouseLeave={resetTilt}
       whileHover={{ y: -12, scale: 1.02 }}
       transition={{ type: 'spring', stiffness: 220, damping: 18 }}
     >
       <span className="card-shine"></span>
+
       <label>{product.badge || 'FRESH'}</label>
 
       <button
         type="button"
         className="product-image-btn"
         onClick={() => openQuickView(product)}
+        aria-label={`View ${product.name}`}
       >
         <span className="category-emoji">
           {getCategoryIcon(product.category, product.name)}
         </span>
+
         <motion.img
           src={product.image}
           alt={product.name}
@@ -141,12 +152,17 @@ function QuickViewModal({ product, closeQuickView, flyToCart, addToCart }) {
             <span className="quick-category">
               {getCategoryIcon(product.category, product.name)} {product.category || 'Fresh Juice'}
             </span>
+
             <motion.img
               src={product.image}
               alt={product.name}
               className="product-img"
-              animate={{ y: [0, -10, 0] }}
-              transition={{ duration: 4, repeat: Infinity, ease: 'easeInOut' }}
+              initial={{ y: 20, scale: 0.9 }}
+              animate={{ y: [0, -10, 0], scale: 1 }}
+              transition={{
+                y: { duration: 4, repeat: Infinity, ease: 'easeInOut' },
+                scale: { duration: 0.4 },
+              }}
             />
           </div>
 
@@ -252,11 +268,13 @@ export default function AllProducts() {
   const addToCart = (product) => {
     setCart((prev) => {
       const existing = prev.find((item) => item.id === product.id);
+
       if (existing) {
         return prev.map((item) =>
           item.id === product.id ? { ...item, qty: item.qty + 1 } : item
         );
       }
+
       return [...prev, { ...product, qty: 1 }];
     });
   };
@@ -283,16 +301,24 @@ export default function AllProducts() {
     flyingImg.style.top = `${imgRect.top}px`;
     flyingImg.style.width = `${imgRect.width}px`;
     flyingImg.style.height = `${imgRect.height}px`;
+
     document.body.appendChild(flyingImg);
 
-    cartBtn.scrollIntoView({ behavior: 'smooth', block: 'start', inline: 'nearest' });
+    cartBtn.scrollIntoView({
+      behavior: 'smooth',
+      block: 'start',
+      inline: 'nearest',
+    });
 
     setTimeout(() => {
       const cartRect = cartBtn.getBoundingClientRect();
+
       const startX = imgRect.left;
       const startY = imgRect.top;
+
       const endX = cartRect.left + cartRect.width / 2 - 18;
       const endY = cartRect.top + cartRect.height / 2 - 18;
+
       const midX = startX + (endX - startX) * 0.5;
       const midY = Math.min(startY, endY) - 130;
 
@@ -334,6 +360,7 @@ export default function AllProducts() {
     setTimeout(() => {
       flyingImg.remove();
       addToCart(product);
+
       cartBtn.classList.add('cart-bounce');
       setTimeout(() => cartBtn.classList.remove('cart-bounce'), 550);
     }, animationDuration + scrollDelay);
@@ -374,6 +401,7 @@ export default function AllProducts() {
     )}%0A%0AOrder:%0A${items}%0A%0ATotal: Rs. ${total}`;
 
     window.open(`https://wa.me/${WHATSAPP_NUMBER}?text=${message}`, '_blank');
+
     setCart([]);
     localStorage.removeItem('kfj-cart');
     setCartOpen(false);
