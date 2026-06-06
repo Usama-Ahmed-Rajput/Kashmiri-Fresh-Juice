@@ -1,7 +1,12 @@
 import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { motion, AnimatePresence, useMotionValue, useSpring, useTransform } from 'framer-motion';
+
 import orangeImg from '../../assets/orange.png';
+import mangoImg from '../../assets/mango.png';
+import strawberryImg from '../../assets/strawberry.png';
+import lemonImg from '../../assets/lemon.png';
+
 import './Products.css';
 
 const cardVariants = {
@@ -9,26 +14,19 @@ const cardVariants = {
   visible: (index) => ({
     opacity: 1,
     y: 0,
-    transition: {
-      duration: 0.5,
-      delay: index * 0.08,
-      ease: 'easeOut',
-    },
+    transition: { duration: 0.5, delay: index * 0.08, ease: 'easeOut' },
   }),
 };
 
-const getCategoryIcon = (category = '', name = '') => {
+const getCategoryImage = (category = '', name = '') => {
   const text = `${category} ${name}`.toLowerCase();
 
-  if (text.includes('mango')) return '🥭';
-  if (text.includes('strawberry')) return '🍓';
-  if (text.includes('orange') || text.includes('citrus')) return '🍊';
-  if (text.includes('lemon')) return '🍋';
-  if (text.includes('shake') || text.includes('smoothie')) return '🥤';
-  if (text.includes('apple')) return '🍎';
-  if (text.includes('grape')) return '🍇';
+  if (text.includes('mango')) return mangoImg;
+  if (text.includes('strawberry')) return strawberryImg;
+  if (text.includes('orange') || text.includes('citrus')) return orangeImg;
+  if (text.includes('lemon')) return lemonImg;
 
-  return '🍹';
+  return orangeImg;
 };
 
 function ProductCard({ product, index, flyToCart, openQuickView }) {
@@ -49,11 +47,6 @@ function ProductCard({ product, index, flyToCart, openQuickView }) {
     y.set((e.clientY - rect.top) / rect.height - 0.5);
   };
 
-  const resetTilt = () => {
-    x.set(0);
-    y.set(0);
-  };
-
   return (
     <motion.article
       className="card product-3d-card"
@@ -64,13 +57,12 @@ function ProductCard({ product, index, flyToCart, openQuickView }) {
       viewport={{ once: true, amount: 0.25 }}
       style={{ rotateX, rotateY, transformPerspective: 1000 }}
       onMouseMove={handleMouseMove}
-      onMouseLeave={resetTilt}
-      whileHover={{ y: -12, scale: 1.02 }}
-      transition={{
-        type: 'spring',
-        stiffness: 220,
-        damping: 18,
+      onMouseLeave={() => {
+        x.set(0);
+        y.set(0);
       }}
+      whileHover={{ y: -12, scale: 1.02 }}
+      transition={{ type: 'spring', stiffness: 220, damping: 18 }}
     >
       <span className="card-shine"></span>
 
@@ -82,27 +74,21 @@ function ProductCard({ product, index, flyToCart, openQuickView }) {
         onClick={() => openQuickView(product)}
         aria-label={`View ${product.name}`}
       >
-        <span className="category-emoji">
-          {getCategoryIcon(product.category, product.name)}
+        <span className="category-fruit">
+          <img src={getCategoryImage(product.category, product.name)} alt="" />
         </span>
 
         <motion.img
           src={product.image}
           alt={product.name}
           className="product-img"
-          whileHover={{
-            scale: 1.13,
-            y: -14,
-            rotateZ: -2,
-          }}
+          whileHover={{ scale: 1.13, y: -14, rotateZ: -2 }}
           transition={{ type: 'spring', stiffness: 220, damping: 16 }}
         />
       </button>
 
       <h3>{product.name}</h3>
-
       <p>{product.description}</p>
-
       <strong>Rs. {product.price}</strong>
 
       <motion.button
@@ -158,18 +144,16 @@ function QuickViewModal({ product, closeQuickView, flyToCart, addToCart }) {
 
           <div className="quick-image-wrap">
             <span className="quick-category">
-              {getCategoryIcon(product.category, product.name)} {product.category || 'Fresh Juice'}
+              <img src={getCategoryImage(product.category, product.name)} alt="" />
+              {product.category || 'Fresh Juice'}
             </span>
 
             <motion.img
               src={product.image}
               alt={product.name}
-              initial={{ y: 20, scale: 0.9 }}
-              animate={{ y: [0, -10, 0], scale: 1 }}
-              transition={{
-                y: { duration: 4, repeat: Infinity, ease: 'easeInOut' },
-                scale: { duration: 0.4 },
-              }}
+              className="product-img"
+              animate={{ y: [0, -10, 0] }}
+              transition={{ duration: 4, repeat: Infinity, ease: 'easeInOut' }}
             />
           </div>
 
@@ -177,7 +161,6 @@ function QuickViewModal({ product, closeQuickView, flyToCart, addToCart }) {
             <small>{product.badge || 'FRESH & NATURAL'}</small>
             <h3>{product.name}</h3>
             <p>{product.description || 'Freshly prepared with premium quality fruits.'}</p>
-
             <strong>Rs. {product.price}</strong>
 
             <div className="quick-actions">
@@ -219,8 +202,6 @@ export default function Products({ products, addToCart }) {
   const [quickProduct, setQuickProduct] = useState(null);
   const popularProducts = products.slice(0, 4);
 
-  const closeQuickView = () => setQuickProduct(null);
-
   const flyToCart = (product, e) => {
     const card = e.currentTarget.closest('.card, .quick-view-modal');
     const productImg = card?.querySelector('.product-img, .quick-image-wrap img');
@@ -233,14 +214,12 @@ export default function Products({ products, addToCart }) {
 
     const imgRect = productImg.getBoundingClientRect();
     const isMobile = window.innerWidth <= 600;
-
     const animationDuration = isMobile ? 1700 : 1450;
     const scrollDelay = isMobile ? 420 : 300;
 
     const flyingImg = document.createElement('img');
     flyingImg.src = product.image;
     flyingImg.className = 'fly-cart-img';
-
     flyingImg.style.left = `${imgRect.left}px`;
     flyingImg.style.top = `${imgRect.top}px`;
     flyingImg.style.width = `${imgRect.width}px`;
@@ -248,21 +227,15 @@ export default function Products({ products, addToCart }) {
 
     document.body.appendChild(flyingImg);
 
-    cartBtn.scrollIntoView({
-      behavior: 'smooth',
-      block: 'start',
-      inline: 'nearest',
-    });
+    cartBtn.scrollIntoView({ behavior: 'smooth', block: 'start', inline: 'nearest' });
 
     setTimeout(() => {
       const cartRect = cartBtn.getBoundingClientRect();
 
       const startX = imgRect.left;
       const startY = imgRect.top;
-
       const endX = cartRect.left + cartRect.width / 2 - 18;
       const endY = cartRect.top + cartRect.height / 2 - 18;
-
       const midX = startX + (endX - startX) * 0.5;
       const midY = Math.min(startY, endY) - 130;
 
@@ -274,8 +247,7 @@ export default function Products({ products, addToCart }) {
             width: `${imgRect.width}px`,
             height: `${imgRect.height}px`,
             opacity: 1,
-            transform:
-              'translateZ(0) rotateX(0deg) rotateY(0deg) rotateZ(0deg) scale(1)',
+            transform: 'rotateX(0deg) rotateY(0deg) rotateZ(0deg) scale(1)',
           },
           {
             left: `${midX}px`,
@@ -283,8 +255,7 @@ export default function Products({ products, addToCart }) {
             width: `${imgRect.width * 0.55}px`,
             height: `${imgRect.height * 0.55}px`,
             opacity: 0.92,
-            transform:
-              'translateZ(80px) rotateX(18deg) rotateY(-18deg) rotateZ(180deg) scale(0.75)',
+            transform: 'rotateX(18deg) rotateY(-18deg) rotateZ(180deg) scale(0.75)',
           },
           {
             left: `${endX}px`,
@@ -292,8 +263,7 @@ export default function Products({ products, addToCart }) {
             width: '36px',
             height: '36px',
             opacity: 0.15,
-            transform:
-              'translateZ(0) rotateX(25deg) rotateY(25deg) rotateZ(360deg) scale(0.22)',
+            transform: 'rotateX(25deg) rotateY(25deg) rotateZ(360deg) scale(0.22)',
           },
         ],
         {
@@ -309,10 +279,7 @@ export default function Products({ products, addToCart }) {
       addToCart(product);
 
       cartBtn.classList.add('cart-bounce');
-
-      setTimeout(() => {
-        cartBtn.classList.remove('cart-bounce');
-      }, 550);
+      setTimeout(() => cartBtn.classList.remove('cart-bounce'), 550);
     }, animationDuration + scrollDelay);
   };
 
@@ -385,7 +352,7 @@ export default function Products({ products, addToCart }) {
       {quickProduct && (
         <QuickViewModal
           product={quickProduct}
-          closeQuickView={closeQuickView}
+          closeQuickView={() => setQuickProduct(null)}
           flyToCart={flyToCart}
           addToCart={addToCart}
         />
