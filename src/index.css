@@ -59,6 +59,18 @@ h4 {
   font-weight: 800;
 }
 
+.whatsapp,
+.outline {
+  position: relative;
+  overflow: hidden;
+  transform-style: preserve-3d;
+  transition:
+    transform 0.22s ease,
+    box-shadow 0.22s ease,
+    border-color 0.22s ease;
+  isolation: isolate;
+}
+
 .whatsapp {
   display: inline-flex;
   align-items: center;
@@ -67,7 +79,8 @@ h4 {
   background: linear-gradient(180deg, #95eb32, #2d8504);
   border: 1px solid rgba(173, 255, 78, 0.5);
   box-shadow:
-    0 0 30px rgba(131, 255, 0, 0.25),
+    0 18px 38px rgba(131, 255, 0, 0.22),
+    0 8px 18px rgba(0, 0, 0, 0.28),
     inset 0 1px 0 rgba(255, 255, 255, 0.25);
   border-radius: 999px;
   padding: 15px 28px;
@@ -75,6 +88,47 @@ h4 {
   font-weight: 900;
   color: #fff;
   cursor: pointer;
+}
+
+.whatsapp::before,
+.outline::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: -80%;
+  width: 55%;
+  height: 100%;
+  background: linear-gradient(
+    110deg,
+    transparent,
+    rgba(255, 255, 255, 0.38),
+    transparent
+  );
+  transform: skewX(-22deg);
+  transition: left 0.7s ease;
+  z-index: -1;
+}
+
+.whatsapp:hover,
+.outline:hover {
+  transform: translateY(-3px) scale(1.025);
+}
+
+.whatsapp:hover {
+  box-shadow:
+    0 24px 48px rgba(131, 255, 0, 0.3),
+    0 12px 24px rgba(0, 0, 0, 0.35),
+    inset 0 1px 0 rgba(255, 255, 255, 0.34);
+}
+
+.whatsapp:hover::before,
+.outline:hover::before {
+  left: 130%;
+}
+
+.whatsapp:active,
+.outline:active {
+  transform: translateY(1px) scale(0.97);
 }
 
 .outline {
@@ -90,6 +144,17 @@ h4 {
   font-weight: 900;
   color: #fff;
   cursor: pointer;
+  box-shadow:
+    0 16px 34px rgba(0, 0, 0, 0.28),
+    inset 0 0 24px rgba(255, 255, 255, 0.04);
+}
+
+.outline:hover {
+  border-color: rgba(143, 226, 53, 0.65);
+  box-shadow:
+    0 22px 44px rgba(0, 0, 0, 0.36),
+    0 0 24px rgba(143, 226, 53, 0.12),
+    inset 0 0 28px rgba(143, 226, 53, 0.06);
 }
 
 .outline i {
@@ -126,6 +191,11 @@ h4 {
   .outline {
     padding: 13px 20px;
     font-size: 13px;
+  }
+
+  .whatsapp:hover,
+  .outline:hover {
+    transform: none;
   }
 }
 
