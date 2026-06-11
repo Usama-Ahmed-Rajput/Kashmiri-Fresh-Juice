@@ -354,7 +354,7 @@ export default function Admin() {
         </div>
 
         <button className={active === 'dashboard' ? 'active' : ''} onClick={() => openSection('dashboard')}>
-           Dashboard
+          Dashboard
         </button>
 
         <button className={active === 'addProduct' ? 'active' : ''} onClick={() => openSection('addProduct')}>
@@ -362,7 +362,7 @@ export default function Admin() {
         </button>
 
         <button className={active === 'products' ? 'active' : ''} onClick={() => openSection('products')}>
-           Products
+          Products
         </button>
 
         <button className={active === 'reviews' ? 'active' : ''} onClick={() => openSection('reviews')}>
@@ -370,11 +370,11 @@ export default function Admin() {
         </button>
 
         <button className={active === 'orders' ? 'active' : ''} onClick={() => openSection('orders')}>
-           Orders
+          Orders
         </button>
 
         <div className="admin-sidebar-bottom">
-          <button onClick={logout}> Logout</button>
+          <button onClick={logout}>Logout</button>
         </div>
       </aside>
 
@@ -709,18 +709,50 @@ export default function Admin() {
               <p>No orders yet.</p>
             ) : (
               orders.map((order) => (
-                <div className="order-card" key={order.id}>
-                  <b>
-                    {order.customer?.name} - Rs. {order.total}
-                  </b>
+                <div className="order-card order-detail-card" key={order.id}>
+                  <div className="order-detail-head">
+                    <div>
+                      <b>{order.customer?.name || 'Unknown Customer'}</b>
+                      <span>{order.createdAtText || 'Firebase timestamp'}</span>
+                    </div>
 
-                  <span>{order.createdAtText || 'Firebase timestamp'}</span>
+                    <strong>Rs. {order.total || 0}</strong>
+                  </div>
 
-                  <p>
-                    {order.customer?.phone}
-                    <br />
-                    {order.customer?.address}
-                  </p>
+                  <div className="order-customer-info">
+                    <p>
+                      <b>Phone:</b> {order.customer?.phone || 'N/A'}
+                    </p>
+
+                    <p>
+                      <b>Address:</b> {order.customer?.address || 'N/A'}
+                    </p>
+                  </div>
+
+                  <div className="order-items">
+                    <h4>Order Items</h4>
+
+                    {order.cart?.length ? (
+                      order.cart.map((item, index) => (
+                        <div className="order-item-row" key={`${order.id}-${item.id || index}`}>
+                          <img src={item.image || mangoFallback} alt={item.name || 'Product'} />
+
+                          <div>
+                            <b>{item.name || 'Unknown Product'}</b>
+                            <span>
+                              Qty: {item.qty || 1} × Rs. {item.price || 0}
+                            </span>
+                          </div>
+
+                          <strong>
+                            Rs. {Number(item.price || 0) * Number(item.qty || 1)}
+                          </strong>
+                        </div>
+                      ))
+                    ) : (
+                      <p>No item detail found.</p>
+                    )}
+                  </div>
                 </div>
               ))
             )}
