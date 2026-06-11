@@ -10,6 +10,7 @@ import {
   setDoc,
   updateDoc,
 } from 'firebase/firestore';
+
 import { ref, uploadBytes, getDownloadURL } from 'firebase/storage';
 import { db, storage } from './config.js';
 import { defaultProducts } from '../data/defaultProducts';
@@ -20,26 +21,35 @@ const reviewsRef = collection(db, 'reviews');
 
 export async function getFirebaseProducts() {
   const snapshot = await getDocs(query(productsRef, orderBy('createdAt', 'asc')));
-  return snapshot.docs.map((item) => ({ id: item.id, ...item.data() }));
+
+  return snapshot.docs.map((item) => ({
+    id: item.id,
+    ...item.data(),
+    active: item.data().active !== false,
+  }));
 }
 
 export async function seedDefaultProductsIfEmpty() {
   const current = await getFirebaseProducts();
   if (current.length) return current;
 
-  await Promise.all(defaultProducts.map((product, index) => {
-    const safeId = String(product.id || Date.now() + index);
-    return setDoc(doc(db, 'products', safeId), {
-      name: product.name,
-      category: product.category,
-      description: product.description,
-      price: Number(product.price || 0),
-      image: product.image,
-      badge: product.badge || 'FRESH',
-      createdAt: serverTimestamp(),
-      updatedAt: serverTimestamp(),
-    });
-  }));
+  await Promise.all(
+    defaultProducts.map((product, index) => {
+      const safeId = String(product.id || Date.now() + index);
+
+      return setDoc(doc(db, 'products', safeId), {
+        name: product.name,
+        category: product.category,
+        description: product.description,
+        price: Number(product.price || 0),
+        image: product.image,
+        badge: product.badge || 'FRESH',
+        active: product.active !== false,
+        createdAt: serverTimestamp(),
+        updatedAt: serverTimestamp(),
+      });
+    })
+  );
 
   return getFirebaseProducts();
 }
@@ -52,6 +62,7 @@ export async function addFirebaseProduct(product) {
     price: Number(product.price || 0),
     image: String(product.image || '').trim(),
     badge: String(product.badge || 'NEW').trim(),
+    active: product.active !== false,
     createdAt: serverTimestamp(),
     updatedAt: serverTimestamp(),
   });
@@ -67,6 +78,7 @@ export async function updateFirebaseProduct(id, product) {
     price: Number(product.price || 0),
     image: String(product.image || '').trim(),
     badge: String(product.badge || 'FRESH').trim(),
+    active: product.active !== false,
     updatedAt: serverTimestamp(),
   });
 
@@ -89,14 +101,21 @@ export async function saveFirebaseOrder(order) {
 
 export async function getFirebaseOrders() {
   const snapshot = await getDocs(query(ordersRef, orderBy('createdAt', 'desc')));
-  return snapshot.docs.map((item) => ({ id: item.id, ...item.data() }));
+
+  return snapshot.docs.map((item) => ({
+    id: item.id,
+    ...item.data(),
+  }));
 }
 
 export async function uploadProductImage(file) {
   if (!file) return '';
+
   const cleanName = file.name.replace(/[^a-zA-Z0-9._-]/g, '-');
   const imageRef = ref(storage, `products/${Date.now()}-${cleanName}`);
+
   await uploadBytes(imageRef, file);
+
   return getDownloadURL(imageRef);
 }
 
@@ -115,11 +134,16 @@ export async function submitFirebaseReview(review) {
 
 export async function getAllFirebaseReviews() {
   const snapshot = await getDocs(query(reviewsRef, orderBy('createdAt', 'desc')));
-  return snapshot.docs.map((item) => ({ id: item.id, ...item.data() }));
+
+  return snapshot.docs.map((item) => ({
+    id: item.id,
+    ...item.data(),
+  }));
 }
 
 export async function getApprovedFirebaseReviews() {
   const allReviews = await getAllFirebaseReviews();
+
   return allReviews.filter((review) => review.status === 'approved');
 }
 
@@ -143,5 +167,6 @@ export async function hideFirebaseReview(id) {
 
 export async function deleteFirebaseReview(id) {
   await deleteDoc(doc(db, 'reviews', String(id)));
+
   return getAllFirebaseReviews();
 }
