@@ -261,10 +261,18 @@ export default function AllProducts() {
     [products]
   );
 
-  const filteredProducts = useMemo(
-    () => (category === 'All' ? products : products.filter((p) => p.category === category)),
-    [products, category]
-  );
+  const visibleProducts = useMemo(
+  () => products.filter((p) => p.active !== false),
+  [products]
+);
+
+const filteredProducts = useMemo(
+  () =>
+    category === 'All'
+      ? visibleProducts
+      : visibleProducts.filter((p) => p.category === category),
+  [visibleProducts, category]
+);
 
   const totalItems = useMemo(() => {
     return cart.reduce((sum, item) => sum + item.qty, 0);
