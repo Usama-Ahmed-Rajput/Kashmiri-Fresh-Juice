@@ -774,3 +774,135 @@
     grid-column: 2;
   }
 }
+
+
+.orders-list {
+  display: grid;
+  gap: 12px;
+}
+
+.order-accordion-card {
+  padding: 0;
+  overflow: hidden;
+}
+
+.order-summary-row {
+  width: 100%;
+  border: 0;
+  background: rgba(0, 0, 0, 0.16);
+  color: #fff;
+  padding: 14px;
+  cursor: pointer;
+  display: grid;
+  grid-template-columns: 1fr auto 28px;
+  align-items: center;
+  gap: 14px;
+  text-align: left;
+}
+
+.order-summary-row:hover {
+  background: rgba(156, 225, 61, 0.08);
+}
+
+.order-summary-row b {
+  display: block;
+  font-size: 17px;
+}
+
+.order-summary-row span {
+  display: block;
+  color: #9ee44a;
+  font-size: 12px;
+  margin-top: 4px;
+}
+
+.order-summary-row p {
+  margin: 0 0 4px;
+  color: #eaffdf;
+  font-size: 13px;
+}
+
+.order-summary-row strong {
+  color: #9ee44a;
+  white-space: nowrap;
+}
+
+.order-summary-row i {
+  color: #9ee44a;
+  font-style: normal;
+  text-align: center;
+}
+
+.order-detail-panel {
+  border-top: 1px solid rgba(156, 225, 61, 0.18);
+  padding: 14px;
+  background: rgba(0, 0, 0, 0.16);
+  display: grid;
+  gap: 14px;
+}
+
+.order-customer-info {
+  display: grid;
+  gap: 6px;
+  color: #eaffdf;
+}
+
+.order-customer-info p {
+  margin: 0;
+}
+
+.order-items h4 {
+  margin-bottom: 10px;
+  color: #9ee44a;
+}
+
+.order-item-row {
+  display: grid;
+  grid-template-columns: 54px 1fr auto;
+  align-items: center;
+  gap: 12px;
+  border: 1px solid rgba(156, 225, 61, 0.16);
+  background: rgba(0, 0, 0, 0.22);
+  padding: 10px;
+  border-radius: 14px;
+  margin-bottom: 8px;
+}
+
+.order-item-row img {
+  width: 54px;
+  height: 54px;
+  object-fit: contain;
+}
+
+.order-item-row span {
+  color: #d9f8c6;
+  font-size: 13px;
+}
+
+.order-item-row strong {
+  color: #9ee44a;
+  white-space: nowrap;
+}
+
+@media (max-width: 560px) {
+  .order-summary-row {
+    grid-template-columns: 1fr 24px;
+  }
+
+  .order-summary-row > div:nth-child(2) {
+    grid-column: 1;
+  }
+
+  .order-summary-row i {
+    grid-column: 2;
+    grid-row: 1 / span 2;
+  }
+
+  .order-item-row {
+    grid-template-columns: 48px 1fr;
+  }
+
+  .order-item-row strong {
+    grid-column: 2;
+  }
+}
