@@ -188,30 +188,42 @@ export default function Admin() {
   const toggleProductStatus = async (product) => {
     setError('');
     setNotice('');
-    setLoading(true);
+
+    const nextStatus = product.active === false;
+
+    setProducts((prev) =>
+      prev.map((item) =>
+        item.id === product.id ? { ...item, active: nextStatus } : item
+      )
+    );
 
     try {
-      const nextStatus = product.active === false;
-
       const updatedProduct = {
         ...product,
         active: nextStatus,
       };
 
       const next = await updateFirebaseProduct(product.id, updatedProduct);
-      setProducts(next);
+
+      if (Array.isArray(next)) {
+        setProducts(next);
+      }
 
       setNotice(
         nextStatus
-          ? `"${product.name}" active ho gaya. Website par show hoga.`
-          : `"${product.name}" inactive ho gaya. Website se hide hoga.`
+          ? `"${product.name}" Active ho gaya. Website par show hoga.`
+          : `"${product.name}" Inactive ho gaya. Website se hide hoga.`
       );
 
       window.dispatchEvent(new Event('kfj-products-updated'));
     } catch (err) {
+      setProducts((prev) =>
+        prev.map((item) =>
+          item.id === product.id ? { ...item, active: product.active !== false } : item
+        )
+      );
+
       setError(err.message || 'Product status update nahi ho saka.');
-    } finally {
-      setLoading(false);
     }
   };
 
@@ -586,20 +598,17 @@ export default function Admin() {
                       </em>
                     </div>
 
-                    <label className="product-status-switch">
-  <span className={product.active !== false ? 'on' : ''}>Active</span>
-
-  <input
-    type="checkbox"
-    checked={product.active !== false}
-    onChange={() => toggleProductStatus(product)}
-    disabled={loading}
-  />
-
-  <b></b>
-
-  <span className={product.active === false ? 'off' : ''}>Inactive</span>
-</label>
+                    <button
+                      type="button"
+                      className={`status-toggle ${
+                        product.active !== false ? 'is-active' : 'is-inactive'
+                      }`}
+                      onClick={() => toggleProductStatus(product)}
+                    >
+                      <span className="toggle-text off-text">OFF</span>
+                      <span className="toggle-knob"></span>
+                      <span className="toggle-text on-text">ON</span>
+                    </button>
 
                     <button onClick={() => edit(product)}>Edit</button>
 
