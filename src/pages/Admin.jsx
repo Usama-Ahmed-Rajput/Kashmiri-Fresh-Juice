@@ -27,6 +27,7 @@ const emptyForm = {
   price: '',
   image: '',
   badge: 'NEW',
+  active: true,
 };
 
 export default function Admin() {
@@ -55,6 +56,7 @@ export default function Admin() {
       setUser(currentUser);
       setAuthReady(true);
     });
+
     return unsub;
   }, []);
 
@@ -64,6 +66,7 @@ export default function Admin() {
 
   const loadAdminData = async () => {
     setLoading(true);
+
     try {
       const [firebaseProducts, firebaseOrders, firebaseReviews] = await Promise.all([
         getFirebaseProducts(),
@@ -143,6 +146,7 @@ export default function Admin() {
       const product = {
         ...form,
         price: Number(form.price),
+        active: form.active !== false,
         image: imageUrl || mangoFallback,
       };
 
@@ -173,10 +177,42 @@ export default function Admin() {
       price: product.price || '',
       image: product.image || '',
       badge: product.badge || 'NEW',
+      active: product.active !== false,
     });
+
     setImageFile(null);
     setActive('addProduct');
     window.scrollTo({ top: 0, behavior: 'smooth' });
+  };
+
+  const toggleProductStatus = async (product) => {
+    setError('');
+    setNotice('');
+    setLoading(true);
+
+    try {
+      const nextStatus = product.active === false;
+
+      const updatedProduct = {
+        ...product,
+        active: nextStatus,
+      };
+
+      const next = await updateFirebaseProduct(product.id, updatedProduct);
+      setProducts(next);
+
+      setNotice(
+        nextStatus
+          ? `"${product.name}" active ho gaya. Website par show hoga.`
+          : `"${product.name}" inactive ho gaya. Website se hide hoga.`
+      );
+
+      window.dispatchEvent(new Event('kfj-products-updated'));
+    } catch (err) {
+      setError(err.message || 'Product status update nahi ho saka.');
+    } finally {
+      setLoading(false);
+    }
   };
 
   const del = async (id) => {
@@ -200,6 +236,7 @@ export default function Admin() {
 
   const approveReview = async (id) => {
     setLoading(true);
+
     try {
       const next = await approveFirebaseReview(id);
       setReviews(next);
@@ -213,6 +250,7 @@ export default function Admin() {
 
   const hideReview = async (id) => {
     setLoading(true);
+
     try {
       const next = await hideFirebaseReview(id);
       setReviews(next);
@@ -228,6 +266,7 @@ export default function Admin() {
     if (!confirm('Delete this review?')) return;
 
     setLoading(true);
+
     try {
       const next = await deleteFirebaseReview(id);
       setReviews(next);
@@ -288,6 +327,8 @@ export default function Admin() {
 
   const pendingReviews = reviews.filter((r) => r.status !== 'approved');
   const approvedReviews = reviews.filter((r) => r.status === 'approved');
+  const activeProducts = products.filter((p) => p.active !== false);
+  const inactiveProducts = products.filter((p) => p.active === false);
 
   return (
     <main className="admin-dashboard-page">
@@ -301,27 +342,27 @@ export default function Admin() {
         </div>
 
         <button className={active === 'dashboard' ? 'active' : ''} onClick={() => openSection('dashboard')}>
-           Dashboard
+          📊 Dashboard
         </button>
 
         <button className={active === 'addProduct' ? 'active' : ''} onClick={() => openSection('addProduct')}>
-           Add New Product
+          ➕ Add New Product
         </button>
 
         <button className={active === 'products' ? 'active' : ''} onClick={() => openSection('products')}>
-          Products
+          🧃 Products
         </button>
 
         <button className={active === 'reviews' ? 'active' : ''} onClick={() => openSection('reviews')}>
-          Reviews
+          ⭐ Reviews
         </button>
 
         <button className={active === 'orders' ? 'active' : ''} onClick={() => openSection('orders')}>
-           Orders
+          🧾 Orders
         </button>
 
         <div className="admin-sidebar-bottom">
-          <button onClick={logout}> Logout</button>
+          <button onClick={logout}>🚪 Logout</button>
         </div>
       </aside>
 
@@ -359,14 +400,27 @@ export default function Admin() {
                 <span>Total Products</span>
                 <b>{products.length}</b>
               </div>
+
+              <div className="admin-stat-card">
+                <span>Active Products</span>
+                <b>{activeProducts.length}</b>
+              </div>
+
+              <div className="admin-stat-card">
+                <span>Inactive Products</span>
+                <b>{inactiveProducts.length}</b>
+              </div>
+
               <div className="admin-stat-card">
                 <span>Total Orders</span>
                 <b>{orders.length}</b>
               </div>
+
               <div className="admin-stat-card">
                 <span>Pending Reviews</span>
                 <b>{pendingReviews.length}</b>
               </div>
+
               <div className="admin-stat-card">
                 <span>Approved Reviews</span>
                 <b>{approvedReviews.length}</b>
@@ -382,9 +436,11 @@ export default function Admin() {
                 <button className="whatsapp" onClick={() => setActive('addProduct')}>
                   Add Product
                 </button>
+
                 <button className="outline" onClick={loadAdminData} disabled={loading}>
                   Refresh Data
                 </button>
+
                 <button className="outline" onClick={seedProducts} disabled={loading}>
                   Seed Default Products
                 </button>
@@ -451,6 +507,25 @@ export default function Admin() {
               onChange={(e) => setForm({ ...form, badge: e.target.value })}
             />
 
+            <label className="admin-toggle-row">
+              <span>
+                Product Status
+                <small>
+                  {form.active !== false
+                    ? 'Active - website par show hoga'
+                    : 'Inactive - website se hide hoga'}
+                </small>
+              </span>
+
+              <input
+                type="checkbox"
+                checked={form.active !== false}
+                onChange={(e) => setForm({ ...form, active: e.target.checked })}
+              />
+
+              <b></b>
+            </label>
+
             <button className="whatsapp" type="submit" disabled={loading}>
               {loading ? 'Saving...' : editingId ? 'Update Product' : 'Add Product'}
             </button>
@@ -474,7 +549,13 @@ export default function Admin() {
         {active === 'products' && (
           <div className="admin-card">
             <div className="admin-card-head">
-              <h2>Products</h2>
+              <div>
+                <h2>Products</h2>
+                <p className="admin-mini-text">
+                  Active: {activeProducts.length} | Inactive: {inactiveProducts.length}
+                </p>
+              </div>
+
               <button className="whatsapp" onClick={() => setActive('addProduct')}>
                 Add New
               </button>
@@ -485,16 +566,32 @@ export default function Admin() {
             ) : (
               <div className="admin-products-list">
                 {products.map((product) => (
-                  <div className="admin-product" key={product.id}>
+                  <div
+                    className={`admin-product ${product.active === false ? 'product-disabled' : ''}`}
+                    key={product.id}
+                  >
                     <img src={product.image} alt={product.name} />
 
                     <div>
                       <b>{product.name}</b>
-                      <span>{product.category} | Rs. {product.price}</span>
+
+                      <span>
+                        {product.category} | Rs. {product.price}
+                      </span>
+
                       <small>{product.badge}</small>
+
+                      <em className={product.active !== false ? 'status-active' : 'status-inactive'}>
+                        {product.active !== false ? 'Active' : 'Inactive'}
+                      </em>
                     </div>
 
+                    <button onClick={() => toggleProductStatus(product)} disabled={loading}>
+                      {product.active !== false ? 'Inactive' : 'Active'}
+                    </button>
+
                     <button onClick={() => edit(product)}>Edit</button>
+
                     <button onClick={() => del(product.id)}>Delete</button>
                   </div>
                 ))}
@@ -531,10 +628,12 @@ export default function Admin() {
                       </div>
 
                       <div className="admin-stars">{'★'.repeat(Number(review.rating || 5))}</div>
+
                       <p>{review.message}</p>
 
                       <div className="review-actions">
                         <button onClick={() => approveReview(review.id)}>Approve</button>
+
                         <button className="danger" onClick={() => removeReview(review.id)}>
                           Delete
                         </button>
@@ -558,10 +657,12 @@ export default function Admin() {
                       </div>
 
                       <div className="admin-stars">{'★'.repeat(Number(review.rating || 5))}</div>
+
                       <p>{review.message}</p>
 
                       <div className="review-actions">
                         <button onClick={() => hideReview(review.id)}>Move to Pending</button>
+
                         <button className="danger" onClick={() => removeReview(review.id)}>
                           Delete
                         </button>
@@ -578,6 +679,7 @@ export default function Admin() {
           <section className="orders admin-card">
             <div className="admin-card-head">
               <h2>Recent Orders</h2>
+
               <button className="outline" onClick={loadAdminData} disabled={loading}>
                 Refresh
               </button>
@@ -591,7 +693,9 @@ export default function Admin() {
                   <b>
                     {order.customer?.name} - Rs. {order.total}
                   </b>
+
                   <span>{order.createdAtText || 'Firebase timestamp'}</span>
+
                   <p>
                     {order.customer?.phone}
                     <br />
