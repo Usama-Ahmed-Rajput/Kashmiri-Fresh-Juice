@@ -525,8 +525,8 @@ export default function Admin() {
                 Product Status
                 <small>
                   {form.active !== false
-                    ? 'Active - website par show hoga'
-                    : 'Inactive - website se hide hoga'}
+                    ? 'Active'
+                    : 'Inactive'}
                 </small>
               </span>
 
