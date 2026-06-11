@@ -3,6 +3,7 @@ import {
   collection,
   deleteDoc,
   doc,
+  getDoc,
   getDocs,
   orderBy,
   query,
@@ -18,6 +19,8 @@ import { defaultProducts } from '../data/defaultProducts';
 const productsRef = collection(db, 'products');
 const ordersRef = collection(db, 'orders');
 const reviewsRef = collection(db, 'reviews');
+
+/* PRODUCTS */
 
 export async function getFirebaseProducts() {
   const snapshot = await getDocs(query(productsRef, orderBy('createdAt', 'asc')));
@@ -90,6 +93,19 @@ export async function deleteFirebaseProduct(id) {
   return getFirebaseProducts();
 }
 
+export async function uploadProductImage(file) {
+  if (!file) return '';
+
+  const cleanName = file.name.replace(/[^a-zA-Z0-9._-]/g, '-');
+  const imageRef = ref(storage, `products/${Date.now()}-${cleanName}`);
+
+  await uploadBytes(imageRef, file);
+
+  return getDownloadURL(imageRef);
+}
+
+/* ORDERS */
+
 export async function saveFirebaseOrder(order) {
   await addDoc(ordersRef, {
     ...order,
@@ -106,17 +122,6 @@ export async function getFirebaseOrders() {
     id: item.id,
     ...item.data(),
   }));
-}
-
-export async function uploadProductImage(file) {
-  if (!file) return '';
-
-  const cleanName = file.name.replace(/[^a-zA-Z0-9._-]/g, '-');
-  const imageRef = ref(storage, `products/${Date.now()}-${cleanName}`);
-
-  await uploadBytes(imageRef, file);
-
-  return getDownloadURL(imageRef);
 }
 
 /* REVIEWS */
@@ -169,4 +174,43 @@ export async function deleteFirebaseReview(id) {
   await deleteDoc(doc(db, 'reviews', String(id)));
 
   return getAllFirebaseReviews();
+}
+
+/* WEBSITE SETTINGS */
+
+export async function getWebsiteSettings() {
+  const settingsRef = doc(db, 'settings', 'site');
+  const snapshot = await getDoc(settingsRef);
+
+  if (!snapshot.exists()) {
+    return {
+      websiteName: 'Kashmiri Fresh Juices',
+      whatsappNumber: '923079970288',
+      address: '',
+      deliveryCharges: 0,
+      websiteOpen: true,
+    };
+  }
+
+  return {
+    id: snapshot.id,
+    ...snapshot.data(),
+  };
+}
+
+export async function saveWebsiteSettings(settings) {
+  const settingsRef = doc(db, 'settings', 'site');
+
+  const cleanSettings = {
+    websiteName: String(settings.websiteName || 'Kashmiri Fresh Juices').trim(),
+    whatsappNumber: String(settings.whatsappNumber || '').trim(),
+    address: String(settings.address || '').trim(),
+    deliveryCharges: Number(settings.deliveryCharges || 0),
+    websiteOpen: settings.websiteOpen !== false,
+    updatedAt: serverTimestamp(),
+  };
+
+  await setDoc(settingsRef, cleanSettings, { merge: true });
+
+  return cleanSettings;
 }
