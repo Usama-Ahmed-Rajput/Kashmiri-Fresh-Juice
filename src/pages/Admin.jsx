@@ -354,27 +354,27 @@ export default function Admin() {
         </div>
 
         <button className={active === 'dashboard' ? 'active' : ''} onClick={() => openSection('dashboard')}>
-          📊 Dashboard
+           Dashboard
         </button>
 
         <button className={active === 'addProduct' ? 'active' : ''} onClick={() => openSection('addProduct')}>
-          ➕ Add New Product
+          Add New Product
         </button>
 
         <button className={active === 'products' ? 'active' : ''} onClick={() => openSection('products')}>
-          🧃 Products
+           Products
         </button>
 
         <button className={active === 'reviews' ? 'active' : ''} onClick={() => openSection('reviews')}>
-          ⭐ Reviews
+          Reviews
         </button>
 
         <button className={active === 'orders' ? 'active' : ''} onClick={() => openSection('orders')}>
-          🧾 Orders
+           Orders
         </button>
 
         <div className="admin-sidebar-bottom">
-          <button onClick={logout}>🚪 Logout</button>
+          <button onClick={logout}> Logout</button>
         </div>
       </aside>
 
