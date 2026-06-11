@@ -33,6 +33,7 @@ const emptyForm = {
 export default function Admin() {
   const [active, setActive] = useState('dashboard');
   const [sidebarOpen, setSidebarOpen] = useState(false);
+  const [openOrderId, setOpenOrderId] = useState(null);
 
   const [user, setUser] = useState(null);
   const [authReady, setAuthReady] = useState(false);
@@ -708,53 +709,82 @@ export default function Admin() {
             {orders.length === 0 ? (
               <p>No orders yet.</p>
             ) : (
-              orders.map((order) => (
-                <div className="order-card order-detail-card" key={order.id}>
-                  <div className="order-detail-head">
-                    <div>
-                      <b>{order.customer?.name || 'Unknown Customer'}</b>
-                      <span>{order.createdAtText || 'Firebase timestamp'}</span>
-                    </div>
+              <div className="orders-list">
+                {orders.map((order) => {
+                  const isOpen = openOrderId === order.id;
 
-                    <strong>Rs. {order.total || 0}</strong>
-                  </div>
+                  return (
+                    <div className="order-card order-accordion-card" key={order.id}>
+                      <button
+                        type="button"
+                        className="order-summary-row"
+                        onClick={() => setOpenOrderId(isOpen ? null : order.id)}
+                      >
+                        <div>
+                          <b>{order.customer?.name || 'Unknown Customer'}</b>
+                          <span>{order.createdAtText || 'Firebase timestamp'}</span>
+                        </div>
 
-                  <div className="order-customer-info">
-                    <p>
-                      <b>Phone:</b> {order.customer?.phone || 'N/A'}
-                    </p>
+                        <div>
+                          <p>{order.customer?.phone || 'N/A'}</p>
+                          <strong>Rs. {order.total || 0}</strong>
+                        </div>
 
-                    <p>
-                      <b>Address:</b> {order.customer?.address || 'N/A'}
-                    </p>
-                  </div>
+                        <i>{isOpen ? '▲' : '▼'}</i>
+                      </button>
 
-                  <div className="order-items">
-                    <h4>Order Items</h4>
+                      {isOpen && (
+                        <div className="order-detail-panel">
+                          <div className="order-customer-info">
+                            <p>
+                              <b>Name:</b> {order.customer?.name || 'N/A'}
+                            </p>
 
-                    {order.cart?.length ? (
-                      order.cart.map((item, index) => (
-                        <div className="order-item-row" key={`${order.id}-${item.id || index}`}>
-                          <img src={item.image || mangoFallback} alt={item.name || 'Product'} />
+                            <p>
+                              <b>Phone:</b> {order.customer?.phone || 'N/A'}
+                            </p>
 
-                          <div>
-                            <b>{item.name || 'Unknown Product'}</b>
-                            <span>
-                              Qty: {item.qty || 1} × Rs. {item.price || 0}
-                            </span>
+                            <p>
+                              <b>Address:</b> {order.customer?.address || 'N/A'}
+                            </p>
                           </div>
 
-                          <strong>
-                            Rs. {Number(item.price || 0) * Number(item.qty || 1)}
-                          </strong>
+                          <div className="order-items">
+                            <h4>Order Items</h4>
+
+                            {order.cart?.length ? (
+                              order.cart.map((item, index) => (
+                                <div
+                                  className="order-item-row"
+                                  key={`${order.id}-${item.id || index}`}
+                                >
+                                  <img
+                                    src={item.image || mangoFallback}
+                                    alt={item.name || 'Product'}
+                                  />
+
+                                  <div>
+                                    <b>{item.name || 'Unknown Product'}</b>
+                                    <span>
+                                      Qty: {item.qty || 1} × Rs. {item.price || 0}
+                                    </span>
+                                  </div>
+
+                                  <strong>
+                                    Rs. {Number(item.price || 0) * Number(item.qty || 1)}
+                                  </strong>
+                                </div>
+                              ))
+                            ) : (
+                              <p>No item detail found.</p>
+                            )}
+                          </div>
                         </div>
-                      ))
-                    ) : (
-                      <p>No item detail found.</p>
-                    )}
-                  </div>
-                </div>
-              ))
+                      )}
+                    </div>
+                  );
+                })}
+              </div>
             )}
           </section>
         )}
