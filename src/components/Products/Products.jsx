@@ -199,8 +199,13 @@ function QuickViewModal({ product, closeQuickView, flyToCart, addToCart }) {
 }
 
 export default function Products({ products, addToCart }) {
-  const [quickProduct, setQuickProduct] = useState(null);
-  const popularProducts = products.slice(0, 4);
+ const [quickProduct, setQuickProduct] = useState(null);
+
+const visibleProducts = products.filter(
+  (product) => product.active !== false
+);
+
+const popularProducts = visibleProducts.slice(0, 4);
 
   const flyToCart = (product, e) => {
     const card = e.currentTarget.closest('.card, .quick-view-modal');
