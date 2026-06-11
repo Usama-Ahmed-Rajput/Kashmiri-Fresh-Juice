@@ -586,9 +586,20 @@ export default function Admin() {
                       </em>
                     </div>
 
-                    <button onClick={() => toggleProductStatus(product)} disabled={loading}>
-                      {product.active !== false ? 'Inactive' : 'Active'}
-                    </button>
+                    <label className="product-status-switch">
+  <span className={product.active !== false ? 'on' : ''}>Active</span>
+
+  <input
+    type="checkbox"
+    checked={product.active !== false}
+    onChange={() => toggleProductStatus(product)}
+    disabled={loading}
+  />
+
+  <b></b>
+
+  <span className={product.active === false ? 'off' : ''}>Inactive</span>
+</label>
 
                     <button onClick={() => edit(product)}>Edit</button>
 
