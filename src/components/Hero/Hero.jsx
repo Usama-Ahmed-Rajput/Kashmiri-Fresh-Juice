@@ -205,3 +205,4 @@ export default function Hero({ whatsappNumber }) {
     </header>
   );
 }
+
