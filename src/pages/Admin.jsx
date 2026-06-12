@@ -206,9 +206,7 @@ export default function Admin() {
 
       const next = await updateFirebaseProduct(product.id, updatedProduct);
 
-      if (Array.isArray(next)) {
-        setProducts(next);
-      }
+      if (Array.isArray(next)) setProducts(next);
 
       setNotice(
         nextStatus
@@ -291,6 +289,11 @@ export default function Admin() {
     }
   };
 
+  const pendingReviews = reviews.filter((r) => r.status !== 'approved');
+  const approvedReviews = reviews.filter((r) => r.status === 'approved');
+  const activeProducts = products.filter((p) => p.active !== false);
+  const inactiveProducts = products.filter((p) => p.active === false);
+
   if (!authReady) {
     return (
       <main className="admin-page">
@@ -330,18 +333,13 @@ export default function Admin() {
             {loading ? 'Checking...' : 'Login'}
           </button>
 
-          <Link className="outline" to="/">
+          <Link className="outline" to="/" onClick={logout}>
             Back to Website
           </Link>
         </form>
       </main>
     );
   }
-
-  const pendingReviews = reviews.filter((r) => r.status !== 'approved');
-  const approvedReviews = reviews.filter((r) => r.status === 'approved');
-  const activeProducts = products.filter((p) => p.active !== false);
-  const inactiveProducts = products.filter((p) => p.active === false);
 
   return (
     <main className="admin-dashboard-page">
@@ -354,25 +352,11 @@ export default function Admin() {
           </div>
         </div>
 
-        <button className={active === 'dashboard' ? 'active' : ''} onClick={() => openSection('dashboard')}>
-          Dashboard
-        </button>
-
-        <button className={active === 'addProduct' ? 'active' : ''} onClick={() => openSection('addProduct')}>
-          Add New Product
-        </button>
-
-        <button className={active === 'products' ? 'active' : ''} onClick={() => openSection('products')}>
-          Products
-        </button>
-
-        <button className={active === 'reviews' ? 'active' : ''} onClick={() => openSection('reviews')}>
-          Reviews
-        </button>
-
-        <button className={active === 'orders' ? 'active' : ''} onClick={() => openSection('orders')}>
-          Orders
-        </button>
+        <button className={active === 'dashboard' ? 'active' : ''} onClick={() => openSection('dashboard')}>Dashboard</button>
+        <button className={active === 'addProduct' ? 'active' : ''} onClick={() => openSection('addProduct')}>Add New Product</button>
+        <button className={active === 'products' ? 'active' : ''} onClick={() => openSection('products')}>Products</button>
+        <button className={active === 'reviews' ? 'active' : ''} onClick={() => openSection('reviews')}>Reviews</button>
+        <button className={active === 'orders' ? 'active' : ''} onClick={() => openSection('orders')}>Orders</button>
 
         <div className="admin-sidebar-bottom">
           <button onClick={logout}>Logout</button>
@@ -383,9 +367,7 @@ export default function Admin() {
 
       <section className="admin-content">
         <header className="admin-topbar">
-          <button className="admin-menu-btn" onClick={() => setSidebarOpen(true)}>
-            ☰
-          </button>
+          <button className="admin-menu-btn" onClick={() => setSidebarOpen(true)}>☰</button>
 
           <div>
             <h1>
@@ -398,7 +380,7 @@ export default function Admin() {
             <p>Logged in: {user.email}</p>
           </div>
 
-          <Link className="outline" to="/">
+          <Link className="outline" to="/" onClick={logout}>
             Website
           </Link>
         </header>
@@ -409,35 +391,12 @@ export default function Admin() {
         {active === 'dashboard' && (
           <>
             <div className="admin-stats">
-              <div className="admin-stat-card">
-                <span>Total Products</span>
-                <b>{products.length}</b>
-              </div>
-
-              <div className="admin-stat-card">
-                <span>Active Products</span>
-                <b>{activeProducts.length}</b>
-              </div>
-
-              <div className="admin-stat-card">
-                <span>Inactive Products</span>
-                <b>{inactiveProducts.length}</b>
-              </div>
-
-              <div className="admin-stat-card">
-                <span>Total Orders</span>
-                <b>{orders.length}</b>
-              </div>
-
-              <div className="admin-stat-card">
-                <span>Pending Reviews</span>
-                <b>{pendingReviews.length}</b>
-              </div>
-
-              <div className="admin-stat-card">
-                <span>Approved Reviews</span>
-                <b>{approvedReviews.length}</b>
-              </div>
+              <div className="admin-stat-card"><span>Total Products</span><b>{products.length}</b></div>
+              <div className="admin-stat-card"><span>Active Products</span><b>{activeProducts.length}</b></div>
+              <div className="admin-stat-card"><span>Inactive Products</span><b>{inactiveProducts.length}</b></div>
+              <div className="admin-stat-card"><span>Total Orders</span><b>{orders.length}</b></div>
+              <div className="admin-stat-card"><span>Pending Reviews</span><b>{pendingReviews.length}</b></div>
+              <div className="admin-stat-card"><span>Approved Reviews</span><b>{approvedReviews.length}</b></div>
             </div>
 
             <div className="admin-card">
@@ -446,17 +405,9 @@ export default function Admin() {
               </div>
 
               <div className="admin-actions-grid">
-                <button className="whatsapp" onClick={() => setActive('addProduct')}>
-                  Add Product
-                </button>
-
-                <button className="outline" onClick={loadAdminData} disabled={loading}>
-                  Refresh Data
-                </button>
-
-                <button className="outline" onClick={seedProducts} disabled={loading}>
-                  Seed Default Products
-                </button>
+                <button className="whatsapp" onClick={() => setActive('addProduct')}>Add Product</button>
+                <button className="outline" onClick={loadAdminData} disabled={loading}>Refresh Data</button>
+                <button className="outline" onClick={seedProducts} disabled={loading}>Seed Default Products</button>
               </div>
             </div>
           </>
@@ -466,18 +417,9 @@ export default function Admin() {
           <form className="admin-card product-form" onSubmit={submit}>
             <h2>{editingId ? 'Edit Product' : 'Add New Product'}</h2>
 
-            <input
-              placeholder="Product Name"
-              value={form.name}
-              onChange={(e) => setForm({ ...form, name: e.target.value })}
-              required
-            />
+            <input placeholder="Product Name" value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} required />
 
-            <select
-              value={form.category}
-              onChange={(e) => setForm({ ...form, category: e.target.value })}
-              required
-            >
+            <select value={form.category} onChange={(e) => setForm({ ...form, category: e.target.value })} required>
               <option value="">Select Category</option>
               <option value="Special Juice">Special Juice</option>
               <option value="Citrus Juice">Citrus Juice</option>
@@ -487,55 +429,18 @@ export default function Admin() {
               <option value="Mint Juice">Mint Juice</option>
             </select>
 
-            <input
-              placeholder="Description"
-              value={form.description}
-              onChange={(e) => setForm({ ...form, description: e.target.value })}
-              required
-            />
-
-            <input
-              type="number"
-              placeholder="Price"
-              value={form.price}
-              onChange={(e) => setForm({ ...form, price: e.target.value })}
-              required
-            />
-
-            <input
-              placeholder="Image URL. Optional if uploading file"
-              value={form.image}
-              onChange={(e) => setForm({ ...form, image: e.target.value })}
-            />
-
-            <input
-              type="file"
-              accept="image/*"
-              onChange={(e) => setImageFile(e.target.files?.[0] || null)}
-            />
-
-            <input
-              placeholder="Badge e.g. NEW, HOT, SALE"
-              value={form.badge}
-              onChange={(e) => setForm({ ...form, badge: e.target.value })}
-            />
+            <input placeholder="Description" value={form.description} onChange={(e) => setForm({ ...form, description: e.target.value })} required />
+            <input type="number" placeholder="Price" value={form.price} onChange={(e) => setForm({ ...form, price: e.target.value })} required />
+            <input placeholder="Image URL. Optional if uploading file" value={form.image} onChange={(e) => setForm({ ...form, image: e.target.value })} />
+            <input type="file" accept="image/*" onChange={(e) => setImageFile(e.target.files?.[0] || null)} />
+            <input placeholder="Badge e.g. NEW, HOT, SALE" value={form.badge} onChange={(e) => setForm({ ...form, badge: e.target.value })} />
 
             <label className="admin-toggle-row">
               <span>
                 Product Status
-                <small>
-                  {form.active !== false
-                    ? 'Active'
-                    : 'Inactive'}
-                </small>
+                <small>{form.active !== false ? 'Active' : 'Inactive'}</small>
               </span>
-
-              <input
-                type="checkbox"
-                checked={form.active !== false}
-                onChange={(e) => setForm({ ...form, active: e.target.checked })}
-              />
-
+              <input type="checkbox" checked={form.active !== false} onChange={(e) => setForm({ ...form, active: e.target.checked })} />
               <b></b>
             </label>
 
@@ -544,15 +449,11 @@ export default function Admin() {
             </button>
 
             {editingId && (
-              <button
-                type="button"
-                className="outline"
-                onClick={() => {
-                  setEditingId(null);
-                  setForm(emptyForm);
-                  setImageFile(null);
-                }}
-              >
+              <button type="button" className="outline" onClick={() => {
+                setEditingId(null);
+                setForm(emptyForm);
+                setImageFile(null);
+              }}>
                 Cancel Edit
               </button>
             )}
@@ -564,14 +465,9 @@ export default function Admin() {
             <div className="admin-card-head">
               <div>
                 <h2>Products</h2>
-                <p className="admin-mini-text">
-                  Active: {activeProducts.length} | Inactive: {inactiveProducts.length}
-                </p>
+                <p className="admin-mini-text">Active: {activeProducts.length} | Inactive: {inactiveProducts.length}</p>
               </div>
-
-              <button className="whatsapp" onClick={() => setActive('addProduct')}>
-                Add New
-              </button>
+              <button className="whatsapp" onClick={() => setActive('addProduct')}>Add New</button>
             </div>
 
             {products.length === 0 ? (
@@ -579,21 +475,13 @@ export default function Admin() {
             ) : (
               <div className="admin-products-list">
                 {products.map((product) => (
-                  <div
-                    className={`admin-product ${product.active === false ? 'product-disabled' : ''}`}
-                    key={product.id}
-                  >
+                  <div className={`admin-product ${product.active === false ? 'product-disabled' : ''}`} key={product.id}>
                     <img src={product.image} alt={product.name} />
 
                     <div>
                       <b>{product.name}</b>
-
-                      <span>
-                        {product.category} | Rs. {product.price}
-                      </span>
-
+                      <span>{product.category} | Rs. {product.price}</span>
                       <small>{product.badge}</small>
-
                       <em className={product.active !== false ? 'status-active' : 'status-inactive'}>
                         {product.active !== false ? 'Active' : 'Inactive'}
                       </em>
@@ -601,9 +489,7 @@ export default function Admin() {
 
                     <button
                       type="button"
-                      className={`status-toggle ${
-                        product.active !== false ? 'is-active' : 'is-inactive'
-                      }`}
+                      className={`status-toggle ${product.active !== false ? 'is-active' : 'is-inactive'}`}
                       onClick={() => toggleProductStatus(product)}
                     >
                       <span className="toggle-text off-text">OFF</span>
@@ -612,7 +498,6 @@ export default function Admin() {
                     </button>
 
                     <button onClick={() => edit(product)}>Edit</button>
-
                     <button onClick={() => del(product.id)}>Delete</button>
                   </div>
                 ))}
@@ -628,10 +513,7 @@ export default function Admin() {
                 <small>REVIEW MODERATION</small>
                 <h2>Customer Reviews</h2>
               </div>
-
-              <button className="outline" onClick={loadAdminData} disabled={loading}>
-                Refresh
-              </button>
+              <button className="outline" onClick={loadAdminData} disabled={loading}>Refresh</button>
             </div>
 
             <div className="review-columns">
@@ -649,15 +531,11 @@ export default function Admin() {
                       </div>
 
                       <div className="admin-stars">{'★'.repeat(Number(review.rating || 5))}</div>
-
                       <p>{review.message}</p>
 
                       <div className="review-actions">
                         <button onClick={() => approveReview(review.id)}>Approve</button>
-
-                        <button className="danger" onClick={() => removeReview(review.id)}>
-                          Delete
-                        </button>
+                        <button className="danger" onClick={() => removeReview(review.id)}>Delete</button>
                       </div>
                     </div>
                   ))
@@ -678,15 +556,11 @@ export default function Admin() {
                       </div>
 
                       <div className="admin-stars">{'★'.repeat(Number(review.rating || 5))}</div>
-
                       <p>{review.message}</p>
 
                       <div className="review-actions">
                         <button onClick={() => hideReview(review.id)}>Move to Pending</button>
-
-                        <button className="danger" onClick={() => removeReview(review.id)}>
-                          Delete
-                        </button>
+                        <button className="danger" onClick={() => removeReview(review.id)}>Delete</button>
                       </div>
                     </div>
                   ))
@@ -700,10 +574,7 @@ export default function Admin() {
           <section className="orders admin-card">
             <div className="admin-card-head">
               <h2>Recent Orders</h2>
-
-              <button className="outline" onClick={loadAdminData} disabled={loading}>
-                Refresh
-              </button>
+              <button className="outline" onClick={loadAdminData} disabled={loading}>Refresh</button>
             </div>
 
             {orders.length === 0 ? (
@@ -736,17 +607,9 @@ export default function Admin() {
                       {isOpen && (
                         <div className="order-detail-panel">
                           <div className="order-customer-info">
-                            <p>
-                              <b>Name:</b> {order.customer?.name || 'N/A'}
-                            </p>
-
-                            <p>
-                              <b>Phone:</b> {order.customer?.phone || 'N/A'}
-                            </p>
-
-                            <p>
-                              <b>Address:</b> {order.customer?.address || 'N/A'}
-                            </p>
+                            <p><b>Name:</b> {order.customer?.name || 'N/A'}</p>
+                            <p><b>Phone:</b> {order.customer?.phone || 'N/A'}</p>
+                            <p><b>Address:</b> {order.customer?.address || 'N/A'}</p>
                           </div>
 
                           <div className="order-items">
@@ -754,25 +617,15 @@ export default function Admin() {
 
                             {order.cart?.length ? (
                               order.cart.map((item, index) => (
-                                <div
-                                  className="order-item-row"
-                                  key={`${order.id}-${item.id || index}`}
-                                >
-                                  <img
-                                    src={item.image || mangoFallback}
-                                    alt={item.name || 'Product'}
-                                  />
+                                <div className="order-item-row" key={`${order.id}-${item.id || index}`}>
+                                  <img src={item.image || mangoFallback} alt={item.name || 'Product'} />
 
                                   <div>
                                     <b>{item.name || 'Unknown Product'}</b>
-                                    <span>
-                                      Qty: {item.qty || 1} × Rs. {item.price || 0}
-                                    </span>
+                                    <span>Qty: {item.qty || 1} × Rs. {item.price || 0}</span>
                                   </div>
 
-                                  <strong>
-                                    Rs. {Number(item.price || 0) * Number(item.qty || 1)}
-                                  </strong>
+                                  <strong>Rs. {Number(item.price || 0) * Number(item.qty || 1)}</strong>
                                 </div>
                               ))
                             ) : (
@@ -792,4 +645,3 @@ export default function Admin() {
     </main>
   );
 }
-
