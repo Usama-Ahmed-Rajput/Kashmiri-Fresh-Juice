@@ -10,7 +10,7 @@ import ContactMap from './components/ContactMap/ContactMap.jsx';
 import Footer from './components/Footer/Footer.jsx';
 import Cart from './components/Cart/Cart.jsx';
 
-import CustomCursor from './components/CustomCursor/CustomCursor.jsx';
+// import CustomCursor from './components/CustomCursor/CustomCursor.jsx';
 import Stats from './components/Stats/Stats.jsx';
 import Testimonials from './components/Testimonials/Testimonials.jsx';
 import StickyOrder from './components/StickyOrder/StickyOrder.jsx';
@@ -141,7 +141,7 @@ export default function App() {
 
   return (
     <main className="page">
-      <CustomCursor />
+      {/* <CustomCursor /> */}
 
       <Navbar
         cartCount={totalItems}
