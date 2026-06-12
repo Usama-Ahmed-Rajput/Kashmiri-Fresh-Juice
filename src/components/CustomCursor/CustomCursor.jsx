@@ -6,14 +6,20 @@ export default function CustomCursor() {
   const [active, setActive] = useState(false);
 
   useEffect(() => {
-    const move = (e) => setPos({ x: e.clientX, y: e.clientY });
+    const move = (e) => {
+      setPos({ x: e.clientX, y: e.clientY });
+    };
 
     const enter = (e) => {
-      if (e.target.closest('a, button, .card, input, textarea')) setActive(true);
+      if (e.target.closest('a, button, .card, input, textarea')) {
+        setActive(true);
+      }
     };
 
     const leave = (e) => {
-      if (e.target.closest('a, button, .card, input, textarea')) setActive(false);
+      if (e.target.closest('a, button, .card, input, textarea')) {
+        setActive(false);
+      }
     };
 
     window.addEventListener('mousemove', move);
@@ -28,9 +34,22 @@ export default function CustomCursor() {
   }, []);
 
   return (
-    <div
-      className={`custom-cursor ${active ? 'active' : ''}`}
-      style={{ left: pos.x, top: pos.y }}
-    />
+    <>
+      <div
+        className={`cursor-ring ${active ? 'active' : ''}`}
+        style={{
+          left: pos.x,
+          top: pos.y,
+        }}
+      />
+
+      <div
+        className={`cursor-drop ${active ? 'active' : ''}`}
+        style={{
+          left: pos.x,
+          top: pos.y,
+        }}
+      />
+    </>
   );
 }
