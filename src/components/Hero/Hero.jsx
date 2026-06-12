@@ -1,7 +1,9 @@
 import { lazy, Suspense, useState } from 'react';
 import { motion, useMotionValue, useSpring, useTransform } from 'framer-motion';
-import heroImg from '../../assets/hero.png';
-import bgc from '../../assets/bgc.png';
+
+import heroImg from '../../assets/hero.webp';
+import bgc from '../../assets/bgc.webp';
+
 const FruitParticles = lazy(() => import('./FruitParticles'));
 import './Hero.css';
 
@@ -28,6 +30,8 @@ export default function Hero({ whatsappNumber }) {
   const rotateX = useTransform(smoothY, [-0.5, 0.5], [8, -8]);
 
   const handleMouseMove = (e) => {
+    if (window.innerWidth <= 768) return;
+
     const rect = e.currentTarget.getBoundingClientRect();
     mouseX.set((e.clientX - rect.left) / rect.width - 0.5);
     mouseY.set((e.clientY - rect.top) / rect.height - 0.5);
@@ -46,10 +50,16 @@ export default function Hero({ whatsappNumber }) {
       onMouseMove={handleMouseMove}
       onMouseEnter={() => setIsHovering(true)}
       onMouseLeave={resetTilt}
-      style={{
-        backgroundImage: `linear-gradient(90deg,rgba(0,8,2,.98) 0%,rgba(0,18,7,.88) 48%,rgba(0,0,0,.28)), url(${bgc})`,
-      }}
     >
+      <img
+        src={bgc}
+        alt=""
+        className="hero-bg-img"
+        loading="eager"
+        fetchPriority="high"
+        decoding="async"
+      />
+
       <Suspense fallback={null}>
         <FruitParticles />
       </Suspense>
@@ -59,6 +69,7 @@ export default function Hero({ whatsappNumber }) {
         animate={{ scale: [1, 1.18, 1], opacity: [0.35, 0.58, 0.35] }}
         transition={{ duration: 6, repeat: Infinity, ease: 'easeInOut' }}
       />
+
       <motion.div
         className="hero-glow hero-glow-two"
         animate={{ y: [0, -22, 0], x: [0, 14, 0] }}
@@ -101,12 +112,7 @@ export default function Hero({ whatsappNumber }) {
               <motion.div
                 key={text}
                 variants={fadeUp}
-                whileHover={{
-                  y: -8,
-                  scale: 1.05,
-                  rotateX: 5,
-                  rotateY: -5,
-                }}
+                whileHover={{ y: -8, scale: 1.05, rotateX: 5, rotateY: -5 }}
                 transition={{ type: 'spring', stiffness: 230, damping: 18 }}
               >
                 <i className={`fa-solid ${icon}`}></i>
@@ -140,20 +146,14 @@ export default function Hero({ whatsappNumber }) {
 
         <motion.div
           className="hero-image-wrap"
-          style={{
-            rotateX,
-            rotateY,
-            transformPerspective: 1000,
-          }}
+          style={{ rotateX, rotateY, transformPerspective: 1000 }}
           initial={{ opacity: 0, scale: 0.9, x: 40 }}
           animate={{ opacity: 1, scale: 1, x: 0 }}
           transition={{ duration: 0.85, ease: 'easeOut', delay: 0.25 }}
         >
           <motion.div
             className="juice-plate"
-            animate={{
-              scale: isHovering ? 1.04 : [1, 1.025, 1],
-            }}
+            animate={{ scale: isHovering ? 1.04 : [1, 1.025, 1] }}
             transition={{ duration: 4.5, repeat: isHovering ? 0 : Infinity, ease: 'easeInOut' }}
           />
 
@@ -161,10 +161,12 @@ export default function Hero({ whatsappNumber }) {
             src={heroImg}
             alt="Mango juice"
             className="hero-image"
-            animate={{
-              y: [0, -16, 0],
-              rotateZ: [0, 1.2, 0],
-            }}
+            loading="eager"
+            fetchPriority="high"
+            decoding="async"
+            width="650"
+            height="650"
+            animate={{ y: [0, -16, 0], rotateZ: [0, 1.2, 0] }}
             transition={{ duration: 5.5, repeat: Infinity, ease: 'easeInOut' }}
           />
 
@@ -183,12 +185,7 @@ export default function Hero({ whatsappNumber }) {
           <motion.div
             className="natural-badge"
             initial={{ opacity: 0, rotate: -12, scale: 0.7 }}
-            animate={{
-              opacity: 1,
-              rotate: [0, 4, 0],
-              scale: 1,
-              y: [0, -8, 0],
-            }}
+            animate={{ opacity: 1, rotate: [0, 4, 0], scale: 1, y: [0, -8, 0] }}
             transition={{
               opacity: { delay: 0.8, duration: 0.3 },
               scale: { delay: 0.8, type: 'spring', stiffness: 170 },
