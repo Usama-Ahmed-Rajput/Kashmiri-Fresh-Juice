@@ -30,6 +30,8 @@ const emptyForm = {
   active: true,
 };
 
+const formatPKR = (amount) => `₨${Number(amount || 0).toLocaleString('en-PK')}`;
+
 export default function Admin() {
   const [active, setActive] = useState('dashboard');
   const [sidebarOpen, setSidebarOpen] = useState(false);
@@ -193,9 +195,7 @@ export default function Admin() {
     const nextStatus = product.active === false;
 
     setProducts((prev) =>
-      prev.map((item) =>
-        item.id === product.id ? { ...item, active: nextStatus } : item
-      )
+      prev.map((item) => (item.id === product.id ? { ...item, active: nextStatus } : item))
     );
 
     try {
@@ -294,6 +294,73 @@ export default function Admin() {
   const activeProducts = products.filter((p) => p.active !== false);
   const inactiveProducts = products.filter((p) => p.active === false);
 
+  const totalRevenue = orders.reduce((sum, order) => sum + Number(order.total || 0), 0);
+  const totalOrders = orders.length;
+  const avgOrderValue = totalOrders ? totalRevenue / totalOrders : 0;
+
+  const customers = new Set(
+    orders.map((order) => order.customer?.phone || order.customer?.name).filter(Boolean)
+  ).size;
+
+  const monthlyRevenue = Array.from({ length: 12 }, (_, index) => ({
+    month: new Date(2026, index).toLocaleString('en-US', { month: 'short' }),
+    total: 0,
+  }));
+
+  orders.forEach((order) => {
+    const date = order.createdAt?.toDate?.() || new Date(order.createdAtText || Date.now());
+    const month = date.getMonth();
+
+    if (!Number.isNaN(month)) {
+      monthlyRevenue[month].total += Number(order.total || 0);
+    }
+  });
+
+  const maxMonthlyRevenue = Math.max(...monthlyRevenue.map((item) => item.total), 1);
+
+  const categorySales = {};
+
+  orders.forEach((order) => {
+    order.cart?.forEach((item) => {
+      const category = item.category || 'Other';
+
+      categorySales[category] = categorySales[category] || {
+        category,
+        total: 0,
+        count: 0,
+      };
+
+      categorySales[category].total += Number(item.price || 0) * Number(item.qty || 1);
+      categorySales[category].count += Number(item.qty || 1);
+    });
+  });
+
+  const categorySalesList = Object.values(categorySales)
+    .filter((item) => item.total > 0 || item.count > 0)
+    .sort((a, b) => b.total - a.total);
+
+  const topProducts = {};
+
+  orders.forEach((order) => {
+    order.cart?.forEach((item) => {
+      const key = item.id || item.name;
+      if (!key) return;
+
+      topProducts[key] = topProducts[key] || {
+        name: item.name || 'Unknown Product',
+        qty: 0,
+        revenue: 0,
+      };
+
+      topProducts[key].qty += Number(item.qty || 1);
+      topProducts[key].revenue += Number(item.price || 0) * Number(item.qty || 1);
+    });
+  });
+
+  const topProductsList = Object.values(topProducts)
+    .sort((a, b) => b.revenue - a.revenue)
+    .slice(0, 5);
+
   if (!authReady) {
     return (
       <main className="admin-page">
@@ -353,6 +420,7 @@ export default function Admin() {
         </div>
 
         <button className={active === 'dashboard' ? 'active' : ''} onClick={() => openSection('dashboard')}>Dashboard</button>
+        <button className={active === 'analytics' ? 'active' : ''} onClick={() => openSection('analytics')}>Analytics</button>
         <button className={active === 'addProduct' ? 'active' : ''} onClick={() => openSection('addProduct')}>Add New Product</button>
         <button className={active === 'products' ? 'active' : ''} onClick={() => openSection('products')}>Products</button>
         <button className={active === 'reviews' ? 'active' : ''} onClick={() => openSection('reviews')}>Reviews</button>
@@ -372,6 +440,7 @@ export default function Admin() {
           <div>
             <h1>
               {active === 'dashboard' && 'Dashboard'}
+              {active === 'analytics' && 'Analytics'}
               {active === 'addProduct' && (editingId ? 'Edit Product' : 'Add New Product')}
               {active === 'products' && 'Products'}
               {active === 'reviews' && 'Reviews'}
@@ -411,6 +480,122 @@ export default function Admin() {
               </div>
             </div>
           </>
+        )}
+
+        {active === 'analytics' && (
+          <section className="analytics-section">
+            <div className="analytics-grid">
+              <div className="analytics-card">
+                <span>Total Revenue</span>
+                <b>{formatPKR(totalRevenue)}</b>
+                <small>Pakistani Rupees</small>
+              </div>
+
+              <div className="analytics-card">
+                <span>Total Orders</span>
+                <b>{totalOrders}</b>
+                <small>All customer orders</small>
+              </div>
+
+              <div className="analytics-card">
+                <span>Avg Order Value</span>
+                <b>{formatPKR(avgOrderValue)}</b>
+                <small>Average sale per order</small>
+              </div>
+
+              <div className="analytics-card">
+                <span>Customers</span>
+                <b>{customers}</b>
+                <small>Unique customers</small>
+              </div>
+            </div>
+
+            <div className="analytics-layout">
+              <div className="admin-card analytics-chart-card">
+                <div className="admin-card-head">
+                  <h2>Monthly Revenue</h2>
+                  <button className="outline" onClick={loadAdminData} disabled={loading}>Refresh</button>
+                </div>
+
+                <div className="analytics-bars">
+                  {monthlyRevenue.map((item) => (
+                    <div className="analytics-bar-item" key={item.month}>
+                      <div className="analytics-bar-track">
+                        <div
+                          className="analytics-bar-fill"
+                          style={{
+                            height: `${Math.max(
+                              (item.total / maxMonthlyRevenue) * 100,
+                              item.total ? 8 : 0
+                            )}%`,
+                          }}
+                        />
+                      </div>
+                      <span>{item.month}</span>
+                      <small>{formatPKR(item.total)}</small>
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              <div className="admin-card analytics-list-card">
+                <h2>Sales by Category</h2>
+
+                {categorySalesList.length === 0 ? (
+                  <p>No category sales yet.</p>
+                ) : (
+                  categorySalesList.map((item) => (
+                    <div className="analytics-row" key={item.category}>
+                      <div>
+                        <b>{item.category}</b>
+                        <span>{item.count} items sold</span>
+                      </div>
+                      <strong>{formatPKR(item.total)}</strong>
+                    </div>
+                  ))
+                )}
+              </div>
+            </div>
+
+            <div className="admin-card analytics-list-card">
+              <h2>Top Products</h2>
+
+              {topProductsList.length === 0 ? (
+                <p>No product sales yet.</p>
+              ) : (
+                topProductsList.map((item, index) => (
+                  <div className="analytics-row" key={item.name}>
+                    <div>
+                      <b>#{index + 1} {item.name}</b>
+                      <span>{item.qty} sold</span>
+                    </div>
+                    <strong>{formatPKR(item.revenue)}</strong>
+                  </div>
+                ))
+              )}
+            </div>
+
+            <div className="admin-card analytics-list-card">
+              <div className="admin-card-head">
+                <h2>Recent Orders</h2>
+                <button className="outline" onClick={() => setActive('orders')}>View All</button>
+              </div>
+
+              {orders.length === 0 ? (
+                <p>No recent orders yet.</p>
+              ) : (
+                orders.slice(0, 5).map((order) => (
+                  <div className="analytics-row" key={order.id}>
+                    <div>
+                      <b>{order.customer?.name || 'Unknown Customer'}</b>
+                      <span>{order.createdAtText || 'Firebase timestamp'}</span>
+                    </div>
+                    <strong>{formatPKR(order.total || 0)}</strong>
+                  </div>
+                ))
+              )}
+            </div>
+          </section>
         )}
 
         {active === 'addProduct' && (
@@ -480,7 +665,7 @@ export default function Admin() {
 
                     <div>
                       <b>{product.name}</b>
-                      <span>{product.category} | Rs. {product.price}</span>
+                      <span>{product.category} | {formatPKR(product.price)}</span>
                       <small>{product.badge}</small>
                       <em className={product.active !== false ? 'status-active' : 'status-inactive'}>
                         {product.active !== false ? 'Active' : 'Inactive'}
@@ -598,7 +783,7 @@ export default function Admin() {
 
                         <div>
                           <p>{order.customer?.phone || 'N/A'}</p>
-                          <strong>Rs. {order.total || 0}</strong>
+                          <strong>{formatPKR(order.total || 0)}</strong>
                         </div>
 
                         <i>{isOpen ? '▲' : '▼'}</i>
@@ -622,10 +807,10 @@ export default function Admin() {
 
                                   <div>
                                     <b>{item.name || 'Unknown Product'}</b>
-                                    <span>Qty: {item.qty || 1} × Rs. {item.price || 0}</span>
+                                    <span>Qty: {item.qty || 1} × {formatPKR(item.price || 0)}</span>
                                   </div>
 
-                                  <strong>Rs. {Number(item.price || 0) * Number(item.qty || 1)}</strong>
+                                  <strong>{formatPKR(Number(item.price || 0) * Number(item.qty || 1))}</strong>
                                 </div>
                               ))
                             ) : (
