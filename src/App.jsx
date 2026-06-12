@@ -10,7 +10,6 @@ import ContactMap from './components/ContactMap/ContactMap.jsx';
 import Footer from './components/Footer/Footer.jsx';
 import Cart from './components/Cart/Cart.jsx';
 
-import Loader from './components/Loader/Loader.jsx';
 import CustomCursor from './components/CustomCursor/CustomCursor.jsx';
 import Stats from './components/Stats/Stats.jsx';
 import Testimonials from './components/Testimonials/Testimonials.jsx';
