@@ -24,7 +24,6 @@ export default function App() {
   const location = useLocation();
 
   const [products, setProducts] = useState([]);
-  const [showLoader, setShowLoader] = useState(true);
   const [cartOpen, setCartOpen] = useState(false);
 
   const [cart, setCart] = useState(() => {
@@ -35,14 +34,6 @@ export default function App() {
       return [];
     }
   });
-
-  useEffect(() => {
-    const timer = setTimeout(() => {
-      setShowLoader(false);
-    }, 1500);
-
-    return () => clearTimeout(timer);
-  }, []);
 
   useEffect(() => {
     localStorage.setItem('kfj-cart', JSON.stringify(cart));
@@ -150,8 +141,6 @@ export default function App() {
 
   return (
     <main className="page">
-      {showLoader ? <Loader /> : null}
-
       <CustomCursor />
 
       <Navbar
