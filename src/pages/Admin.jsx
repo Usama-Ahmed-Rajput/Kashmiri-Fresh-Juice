@@ -1,13 +1,6 @@
 import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
-import {
-  EmailAuthProvider,
-  onAuthStateChanged,
-  reauthenticateWithCredential,
-  signInWithEmailAndPassword,
-  signOut,
-  updatePassword,
-} from 'firebase/auth';
+import { onAuthStateChanged, signInWithEmailAndPassword, signOut } from 'firebase/auth';
 
 import {
   addFirebaseProduct,
@@ -17,9 +10,7 @@ import {
   getAllFirebaseReviews,
   getFirebaseOrders,
   getFirebaseProducts,
-  getWebsiteSettings,
   hideFirebaseReview,
-  saveWebsiteSettings,
   seedDefaultProductsIfEmpty,
   updateFirebaseProduct,
   uploadProductImage,
@@ -39,14 +30,6 @@ const emptyForm = {
   active: true,
 };
 
-const defaultSiteSettings = {
-  websiteName: 'Kashmiri Fresh Juices',
-  whatsappNumber: '923079970288',
-  address: '',
-  deliveryCharges: '',
-  websiteOpen: true,
-};
-
 export default function Admin() {
   const [active, setActive] = useState('dashboard');
   const [sidebarOpen, setSidebarOpen] = useState(false);
@@ -56,10 +39,6 @@ export default function Admin() {
   const [authReady, setAuthReady] = useState(false);
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
-
-  const [oldPassword, setOldPassword] = useState('');
-  const [newPassword, setNewPassword] = useState('');
-  const [siteSettings, setSiteSettings] = useState(defaultSiteSettings);
 
   const [products, setProducts] = useState([]);
   const [orders, setOrders] = useState([]);
@@ -90,17 +69,15 @@ export default function Admin() {
     setLoading(true);
 
     try {
-      const [firebaseProducts, firebaseOrders, firebaseReviews, settings] = await Promise.all([
+      const [firebaseProducts, firebaseOrders, firebaseReviews] = await Promise.all([
         getFirebaseProducts(),
         getFirebaseOrders(),
         getAllFirebaseReviews(),
-        getWebsiteSettings(),
       ]);
 
       setProducts(firebaseProducts || []);
       setOrders(firebaseOrders || []);
       setReviews(firebaseReviews || []);
-      setSiteSettings({ ...defaultSiteSettings, ...(settings || {}) });
       setError('');
     } catch (err) {
       setError(err.message || 'Firebase data load nahi ho saka.');
@@ -314,55 +291,6 @@ export default function Admin() {
     }
   };
 
-  const changeAdminPassword = async (e) => {
-    e.preventDefault();
-    setError('');
-    setNotice('');
-
-    if (newPassword.length < 6) {
-      setError('New password kam az kam 6 characters ka hona chahiye.');
-      return;
-    }
-
-    setLoading(true);
-
-    try {
-      const credential = EmailAuthProvider.credential(user.email, oldPassword);
-
-      await reauthenticateWithCredential(user, credential);
-      await updatePassword(user, newPassword);
-
-      setOldPassword('');
-      setNewPassword('');
-      setNotice('Admin password successfully change ho gaya.');
-    } catch {
-      setError('Old password wrong hai ya login session expired hai.');
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const saveSettings = async (e) => {
-    e.preventDefault();
-    setError('');
-    setNotice('');
-    setLoading(true);
-
-    try {
-      await saveWebsiteSettings({
-        ...siteSettings,
-        deliveryCharges: Number(siteSettings.deliveryCharges || 0),
-      });
-
-      setNotice('Website settings save ho gayi.');
-      window.dispatchEvent(new Event('kfj-settings-updated'));
-    } catch (err) {
-      setError(err.message || 'Website settings save nahi ho saki.');
-    } finally {
-      setLoading(false);
-    }
-  };
-
   if (!authReady) {
     return (
       <main className="admin-page">
@@ -446,10 +374,6 @@ export default function Admin() {
           Orders
         </button>
 
-        <button className={active === 'settings' ? 'active' : ''} onClick={() => openSection('settings')}>
-          Settings
-        </button>
-
         <div className="admin-sidebar-bottom">
           <button onClick={logout}>Logout</button>
         </div>
@@ -470,7 +394,6 @@ export default function Admin() {
               {active === 'products' && 'Products'}
               {active === 'reviews' && 'Reviews'}
               {active === 'orders' && 'Orders'}
-              {active === 'settings' && 'Settings'}
             </h1>
             <p>Logged in: {user.email}</p>
           </div>
@@ -486,12 +409,35 @@ export default function Admin() {
         {active === 'dashboard' && (
           <>
             <div className="admin-stats">
-              <div className="admin-stat-card"><span>Total Products</span><b>{products.length}</b></div>
-              <div className="admin-stat-card"><span>Active Products</span><b>{activeProducts.length}</b></div>
-              <div className="admin-stat-card"><span>Inactive Products</span><b>{inactiveProducts.length}</b></div>
-              <div className="admin-stat-card"><span>Total Orders</span><b>{orders.length}</b></div>
-              <div className="admin-stat-card"><span>Pending Reviews</span><b>{pendingReviews.length}</b></div>
-              <div className="admin-stat-card"><span>Approved Reviews</span><b>{approvedReviews.length}</b></div>
+              <div className="admin-stat-card">
+                <span>Total Products</span>
+                <b>{products.length}</b>
+              </div>
+
+              <div className="admin-stat-card">
+                <span>Active Products</span>
+                <b>{activeProducts.length}</b>
+              </div>
+
+              <div className="admin-stat-card">
+                <span>Inactive Products</span>
+                <b>{inactiveProducts.length}</b>
+              </div>
+
+              <div className="admin-stat-card">
+                <span>Total Orders</span>
+                <b>{orders.length}</b>
+              </div>
+
+              <div className="admin-stat-card">
+                <span>Pending Reviews</span>
+                <b>{pendingReviews.length}</b>
+              </div>
+
+              <div className="admin-stat-card">
+                <span>Approved Reviews</span>
+                <b>{approvedReviews.length}</b>
+              </div>
             </div>
 
             <div className="admin-card">
@@ -500,9 +446,17 @@ export default function Admin() {
               </div>
 
               <div className="admin-actions-grid">
-                <button className="whatsapp" onClick={() => setActive('addProduct')}>Add Product</button>
-                <button className="outline" onClick={loadAdminData} disabled={loading}>Refresh Data</button>
-                <button className="outline" onClick={seedProducts} disabled={loading}>Seed Default Products</button>
+                <button className="whatsapp" onClick={() => setActive('addProduct')}>
+                  Add Product
+                </button>
+
+                <button className="outline" onClick={loadAdminData} disabled={loading}>
+                  Refresh Data
+                </button>
+
+                <button className="outline" onClick={seedProducts} disabled={loading}>
+                  Seed Default Products
+                </button>
               </div>
             </div>
           </>
@@ -512,9 +466,18 @@ export default function Admin() {
           <form className="admin-card product-form" onSubmit={submit}>
             <h2>{editingId ? 'Edit Product' : 'Add New Product'}</h2>
 
-            <input placeholder="Product Name" value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} required />
+            <input
+              placeholder="Product Name"
+              value={form.name}
+              onChange={(e) => setForm({ ...form, name: e.target.value })}
+              required
+            />
 
-            <select value={form.category} onChange={(e) => setForm({ ...form, category: e.target.value })} required>
+            <select
+              value={form.category}
+              onChange={(e) => setForm({ ...form, category: e.target.value })}
+              required
+            >
               <option value="">Select Category</option>
               <option value="Special Juice">Special Juice</option>
               <option value="Citrus Juice">Citrus Juice</option>
@@ -524,19 +487,55 @@ export default function Admin() {
               <option value="Mint Juice">Mint Juice</option>
             </select>
 
-            <input placeholder="Description" value={form.description} onChange={(e) => setForm({ ...form, description: e.target.value })} required />
-            <input type="number" placeholder="Price" value={form.price} onChange={(e) => setForm({ ...form, price: e.target.value })} required />
-            <input placeholder="Image URL. Optional if uploading file" value={form.image} onChange={(e) => setForm({ ...form, image: e.target.value })} />
-            <input type="file" accept="image/*" onChange={(e) => setImageFile(e.target.files?.[0] || null)} />
-            <input placeholder="Badge e.g. NEW, HOT, SALE" value={form.badge} onChange={(e) => setForm({ ...form, badge: e.target.value })} />
+            <input
+              placeholder="Description"
+              value={form.description}
+              onChange={(e) => setForm({ ...form, description: e.target.value })}
+              required
+            />
+
+            <input
+              type="number"
+              placeholder="Price"
+              value={form.price}
+              onChange={(e) => setForm({ ...form, price: e.target.value })}
+              required
+            />
+
+            <input
+              placeholder="Image URL. Optional if uploading file"
+              value={form.image}
+              onChange={(e) => setForm({ ...form, image: e.target.value })}
+            />
+
+            <input
+              type="file"
+              accept="image/*"
+              onChange={(e) => setImageFile(e.target.files?.[0] || null)}
+            />
+
+            <input
+              placeholder="Badge e.g. NEW, HOT, SALE"
+              value={form.badge}
+              onChange={(e) => setForm({ ...form, badge: e.target.value })}
+            />
 
             <label className="admin-toggle-row">
               <span>
                 Product Status
-                <small>{form.active !== false ? 'Active' : 'Inactive'}</small>
+                <small>
+                  {form.active !== false
+                    ? 'Active'
+                    : 'Inactive'}
+                </small>
               </span>
 
-              <input type="checkbox" checked={form.active !== false} onChange={(e) => setForm({ ...form, active: e.target.checked })} />
+              <input
+                type="checkbox"
+                checked={form.active !== false}
+                onChange={(e) => setForm({ ...form, active: e.target.checked })}
+              />
+
               <b></b>
             </label>
 
@@ -545,11 +544,15 @@ export default function Admin() {
             </button>
 
             {editingId && (
-              <button type="button" className="outline" onClick={() => {
-                setEditingId(null);
-                setForm(emptyForm);
-                setImageFile(null);
-              }}>
+              <button
+                type="button"
+                className="outline"
+                onClick={() => {
+                  setEditingId(null);
+                  setForm(emptyForm);
+                  setImageFile(null);
+                }}
+              >
                 Cancel Edit
               </button>
             )}
@@ -561,10 +564,14 @@ export default function Admin() {
             <div className="admin-card-head">
               <div>
                 <h2>Products</h2>
-                <p className="admin-mini-text">Active: {activeProducts.length} | Inactive: {inactiveProducts.length}</p>
+                <p className="admin-mini-text">
+                  Active: {activeProducts.length} | Inactive: {inactiveProducts.length}
+                </p>
               </div>
 
-              <button className="whatsapp" onClick={() => setActive('addProduct')}>Add New</button>
+              <button className="whatsapp" onClick={() => setActive('addProduct')}>
+                Add New
+              </button>
             </div>
 
             {products.length === 0 ? (
@@ -572,25 +579,40 @@ export default function Admin() {
             ) : (
               <div className="admin-products-list">
                 {products.map((product) => (
-                  <div className={`admin-product ${product.active === false ? 'product-disabled' : ''}`} key={product.id}>
+                  <div
+                    className={`admin-product ${product.active === false ? 'product-disabled' : ''}`}
+                    key={product.id}
+                  >
                     <img src={product.image} alt={product.name} />
 
                     <div>
                       <b>{product.name}</b>
-                      <span>{product.category} | Rs. {product.price}</span>
+
+                      <span>
+                        {product.category} | Rs. {product.price}
+                      </span>
+
                       <small>{product.badge}</small>
+
                       <em className={product.active !== false ? 'status-active' : 'status-inactive'}>
                         {product.active !== false ? 'Active' : 'Inactive'}
                       </em>
                     </div>
 
-                    <button type="button" className={`status-toggle ${product.active !== false ? 'is-active' : 'is-inactive'}`} onClick={() => toggleProductStatus(product)}>
+                    <button
+                      type="button"
+                      className={`status-toggle ${
+                        product.active !== false ? 'is-active' : 'is-inactive'
+                      }`}
+                      onClick={() => toggleProductStatus(product)}
+                    >
                       <span className="toggle-text off-text">OFF</span>
                       <span className="toggle-knob"></span>
                       <span className="toggle-text on-text">ON</span>
                     </button>
 
                     <button onClick={() => edit(product)}>Edit</button>
+
                     <button onClick={() => del(product.id)}>Delete</button>
                   </div>
                 ))}
@@ -607,7 +629,9 @@ export default function Admin() {
                 <h2>Customer Reviews</h2>
               </div>
 
-              <button className="outline" onClick={loadAdminData} disabled={loading}>Refresh</button>
+              <button className="outline" onClick={loadAdminData} disabled={loading}>
+                Refresh
+              </button>
             </div>
 
             <div className="review-columns">
@@ -625,11 +649,15 @@ export default function Admin() {
                       </div>
 
                       <div className="admin-stars">{'★'.repeat(Number(review.rating || 5))}</div>
+
                       <p>{review.message}</p>
 
                       <div className="review-actions">
                         <button onClick={() => approveReview(review.id)}>Approve</button>
-                        <button className="danger" onClick={() => removeReview(review.id)}>Delete</button>
+
+                        <button className="danger" onClick={() => removeReview(review.id)}>
+                          Delete
+                        </button>
                       </div>
                     </div>
                   ))
@@ -650,11 +678,15 @@ export default function Admin() {
                       </div>
 
                       <div className="admin-stars">{'★'.repeat(Number(review.rating || 5))}</div>
+
                       <p>{review.message}</p>
 
                       <div className="review-actions">
                         <button onClick={() => hideReview(review.id)}>Move to Pending</button>
-                        <button className="danger" onClick={() => removeReview(review.id)}>Delete</button>
+
+                        <button className="danger" onClick={() => removeReview(review.id)}>
+                          Delete
+                        </button>
                       </div>
                     </div>
                   ))
@@ -668,7 +700,10 @@ export default function Admin() {
           <section className="orders admin-card">
             <div className="admin-card-head">
               <h2>Recent Orders</h2>
-              <button className="outline" onClick={loadAdminData} disabled={loading}>Refresh</button>
+
+              <button className="outline" onClick={loadAdminData} disabled={loading}>
+                Refresh
+              </button>
             </div>
 
             {orders.length === 0 ? (
@@ -680,7 +715,11 @@ export default function Admin() {
 
                   return (
                     <div className="order-card order-accordion-card" key={order.id}>
-                      <button type="button" className="order-summary-row" onClick={() => setOpenOrderId(isOpen ? null : order.id)}>
+                      <button
+                        type="button"
+                        className="order-summary-row"
+                        onClick={() => setOpenOrderId(isOpen ? null : order.id)}
+                      >
                         <div>
                           <b>{order.customer?.name || 'Unknown Customer'}</b>
                           <span>{order.createdAtText || 'Firebase timestamp'}</span>
@@ -697,9 +736,17 @@ export default function Admin() {
                       {isOpen && (
                         <div className="order-detail-panel">
                           <div className="order-customer-info">
-                            <p><b>Name:</b> {order.customer?.name || 'N/A'}</p>
-                            <p><b>Phone:</b> {order.customer?.phone || 'N/A'}</p>
-                            <p><b>Address:</b> {order.customer?.address || 'N/A'}</p>
+                            <p>
+                              <b>Name:</b> {order.customer?.name || 'N/A'}
+                            </p>
+
+                            <p>
+                              <b>Phone:</b> {order.customer?.phone || 'N/A'}
+                            </p>
+
+                            <p>
+                              <b>Address:</b> {order.customer?.address || 'N/A'}
+                            </p>
                           </div>
 
                           <div className="order-items">
@@ -707,15 +754,25 @@ export default function Admin() {
 
                             {order.cart?.length ? (
                               order.cart.map((item, index) => (
-                                <div className="order-item-row" key={`${order.id}-${item.id || index}`}>
-                                  <img src={item.image || mangoFallback} alt={item.name || 'Product'} />
+                                <div
+                                  className="order-item-row"
+                                  key={`${order.id}-${item.id || index}`}
+                                >
+                                  <img
+                                    src={item.image || mangoFallback}
+                                    alt={item.name || 'Product'}
+                                  />
 
                                   <div>
                                     <b>{item.name || 'Unknown Product'}</b>
-                                    <span>Qty: {item.qty || 1} × Rs. {item.price || 0}</span>
+                                    <span>
+                                      Qty: {item.qty || 1} × Rs. {item.price || 0}
+                                    </span>
                                   </div>
 
-                                  <strong>Rs. {Number(item.price || 0) * Number(item.qty || 1)}</strong>
+                                  <strong>
+                                    Rs. {Number(item.price || 0) * Number(item.qty || 1)}
+                                  </strong>
                                 </div>
                               ))
                             ) : (
@@ -729,82 +786,6 @@ export default function Admin() {
                 })}
               </div>
             )}
-          </section>
-        )}
-
-        {active === 'settings' && (
-          <section className="settings-grid">
-            <form className="admin-card settings-form" onSubmit={changeAdminPassword}>
-              <h2>Change Admin Password</h2>
-
-              <input
-                type="password"
-                placeholder="Old Password"
-                value={oldPassword}
-                onChange={(e) => setOldPassword(e.target.value)}
-                required
-              />
-
-              <input
-                type="password"
-                placeholder="New Password"
-                value={newPassword}
-                onChange={(e) => setNewPassword(e.target.value)}
-                required
-              />
-
-              <button className="whatsapp" disabled={loading}>
-                {loading ? 'Updating...' : 'Change Password'}
-              </button>
-            </form>
-
-            <form className="admin-card settings-form" onSubmit={saveSettings}>
-              <h2>Website Settings</h2>
-
-              <input
-                placeholder="Website Name"
-                value={siteSettings.websiteName}
-                onChange={(e) => setSiteSettings({ ...siteSettings, websiteName: e.target.value })}
-              />
-
-              <input
-                placeholder="WhatsApp Number"
-                value={siteSettings.whatsappNumber}
-                onChange={(e) => setSiteSettings({ ...siteSettings, whatsappNumber: e.target.value })}
-              />
-
-              <input
-                placeholder="Shop Address"
-                value={siteSettings.address}
-                onChange={(e) => setSiteSettings({ ...siteSettings, address: e.target.value })}
-              />
-
-              <input
-                type="number"
-                placeholder="Delivery Charges"
-                value={siteSettings.deliveryCharges}
-                onChange={(e) => setSiteSettings({ ...siteSettings, deliveryCharges: e.target.value })}
-              />
-
-              <label className="admin-toggle-row">
-                <span>
-                  Website Status
-                  <small>{siteSettings.websiteOpen ? 'Open' : 'Closed'}</small>
-                </span>
-
-                <input
-                  type="checkbox"
-                  checked={siteSettings.websiteOpen}
-                  onChange={(e) => setSiteSettings({ ...siteSettings, websiteOpen: e.target.checked })}
-                />
-
-                <b></b>
-              </label>
-
-              <button className="whatsapp" disabled={loading}>
-                {loading ? 'Saving...' : 'Save Website Settings'}
-              </button>
-            </form>
           </section>
         )}
       </section>
