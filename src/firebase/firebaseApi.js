@@ -11,19 +11,13 @@ import {
   updateDoc,
 } from 'firebase/firestore';
 
-import { db } from './config.js';
+import { ref, uploadBytes, getDownloadURL } from 'firebase/storage';
+import { db, storage } from './config.js';
 import { defaultProducts } from '../data/defaultProducts';
 
-/* =========================
-   COLLECTIONS
-========================= */
 const productsRef = collection(db, 'products');
 const ordersRef = collection(db, 'orders');
 const reviewsRef = collection(db, 'reviews');
-
-/* =========================
-   PRODUCTS
-========================= */
 
 export async function getFirebaseProducts() {
   const snapshot = await getDocs(query(productsRef, orderBy('createdAt', 'asc')));
@@ -96,41 +90,6 @@ export async function deleteFirebaseProduct(id) {
   return getFirebaseProducts();
 }
 
-/* =========================
-   CLOUDINARY IMAGE UPLOAD
-========================= */
-
-export async function uploadProductImage(file) {
-  if (!file) return '';
-
-  const cloudName = "dv2cobsur";
-  const uploadPreset = "juice_upload";
-
-  const formData = new FormData();
-  formData.append("file", file);
-  formData.append("upload_preset", uploadPreset);
-
-  const res = await fetch(
-    `https://api.cloudinary.com/v1_1/${cloudName}/image/upload`,
-    {
-      method: "POST",
-      body: formData,
-    }
-  );
-
-  const data = await res.json();
-
-  if (!data.secure_url) {
-    throw new Error("Cloudinary image upload failed");
-  }
-
-  return data.secure_url;
-}
-
-/* =========================
-   ORDERS
-========================= */
-
 export async function saveFirebaseOrder(order) {
   await addDoc(ordersRef, {
     ...order,
@@ -149,9 +108,18 @@ export async function getFirebaseOrders() {
   }));
 }
 
-/* =========================
-   REVIEWS
-========================= */
+export async function uploadProductImage(file) {
+  if (!file) return '';
+
+  const cleanName = file.name.replace(/[^a-zA-Z0-9._-]/g, '-');
+  const imageRef = ref(storage, `products/${Date.now()}-${cleanName}`);
+
+  await uploadBytes(imageRef, file);
+
+  return getDownloadURL(imageRef);
+}
+
+/* REVIEWS */
 
 export async function submitFirebaseReview(review) {
   await addDoc(reviewsRef, {
@@ -175,6 +143,7 @@ export async function getAllFirebaseReviews() {
 
 export async function getApprovedFirebaseReviews() {
   const allReviews = await getAllFirebaseReviews();
+
   return allReviews.filter((review) => review.status === 'approved');
 }
 
@@ -198,5 +167,6 @@ export async function hideFirebaseReview(id) {
 
 export async function deleteFirebaseReview(id) {
   await deleteDoc(doc(db, 'reviews', String(id)));
+
   return getAllFirebaseReviews();
 }
