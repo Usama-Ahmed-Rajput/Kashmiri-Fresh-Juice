@@ -1,4 +1,4 @@
-import { useState, useMemo } from 'react';
+import { useState } from 'react';
 import './Cart.css';
 
 export default function Cart({
@@ -6,7 +6,8 @@ export default function Cart({
   onClose,
   cart,
   changeQty,
-  removeItem
+  removeItem,
+  checkout
 }) {
   const [customer, setCustomer] = useState({
     name: '',
@@ -14,42 +15,15 @@ export default function Cart({
     address: ''
   });
 
-  // total calculate clean way
-  const total = useMemo(() => {
-    return cart.reduce((sum, item) => sum + item.price * item.qty, 0);
-  }, [cart]);
+  const total = cart.reduce(
+    (sum, item) => sum + item.price * item.qty,
+    0
+  );
 
-  // WhatsApp message builder
-  const buildMessage = () => {
-    let itemsText = cart
-      .map(
-        (item) =>
-          `• ${item.name} x${item.qty} = Rs ${item.price * item.qty}`
-      )
-      .join('\n');
-
-    return `
-New Order 🛒
-
-Name: ${customer.name}
-Phone: ${customer.phone}
-Address: ${customer.address}
-
-Items:
-${itemsText}
-
-Total: Rs ${total}
-    `;
-  };
-
-  const checkout = (e) => {
+  const submit = (e) => {
     e.preventDefault();
     if (!cart.length) return;
-
-    const msg = encodeURIComponent(buildMessage());
-    const whatsappNumber = '92XXXXXXXXXX'; // apna number
-
-    window.open(`https://wa.me/${whatsappNumber}?text=${msg}`, '_blank');
+    checkout(customer);
   };
 
   return (
@@ -57,53 +31,80 @@ Total: Rs ${total}
       <div className="cart-overlay" onClick={onClose}></div>
 
       <aside className="cart-panel">
-        <button className="close-cart" onClick={onClose}>X</button>
+        <button className="close-cart" onClick={onClose}>
+          <i className="fa-solid fa-xmark"></i>
+        </button>
 
+        <small>ONLINE ORDERING</small>
         <h2>Your Cart</h2>
 
         {cart.length === 0 ? (
-          <p>Cart empty hai</p>
+          <p className="empty-cart">
+            Cart empty hai. Menu se juice add karein.
+          </p>
         ) : (
-          cart.map((item) => (
-            <div key={item.id} className="cart-item">
-              <span>{item.name}</span>
+          <div className="cart-items">
+            {cart.map((item) => (
+              <div className="cart-item" key={item.id}>
+                <img src={item.image} alt={item.name} />
 
-              <div>
-                <button onClick={() => changeQty(item.id, -1)}>-</button>
-                {item.qty}
-                <button onClick={() => changeQty(item.id, 1)}>+</button>
-                <button onClick={() => removeItem(item.id)}>Remove</button>
+                <div>
+                  <b>{item.name}</b>
+                  <span>Rs. {item.price}</span>
+
+                  <div className="qty">
+                    <button onClick={() => changeQty(item.id, -1)}>-</button>
+                    <strong>{item.qty}</strong>
+                    <button onClick={() => changeQty(item.id, 1)}>+</button>
+
+                    <button
+                      className="remove"
+                      onClick={() => removeItem(item.id)}
+                    >
+                      <i className="fa-solid fa-trash"></i>
+                    </button>
+                  </div>
+                </div>
               </div>
-            </div>
-          ))
+            ))}
+          </div>
         )}
 
-        <h3>Total: Rs {total}</h3>
+        <div className="cart-total">
+          <span>Total</span>
+          <b>Rs. {total}</b>
+        </div>
 
-        <form onSubmit={checkout}>
+        <form className="checkout-form" onSubmit={submit}>
           <input
-            placeholder="Name"
+            placeholder="Your Name"
+            value={customer.name}
             onChange={(e) =>
               setCustomer({ ...customer, name: e.target.value })
             }
+            required
           />
 
           <input
-            placeholder="Phone"
+            placeholder="Phone Number"
+            value={customer.phone}
             onChange={(e) =>
               setCustomer({ ...customer, phone: e.target.value })
             }
+            required
           />
 
           <textarea
-            placeholder="Address"
+            placeholder="Delivery Address"
+            value={customer.address}
             onChange={(e) =>
               setCustomer({ ...customer, address: e.target.value })
             }
-          />
+            required
+          ></textarea>
 
-          <button type="submit">
-            Checkout on WhatsApp
+          <button className="whatsapp" type="submit">
+            <i className="fa-brands fa-whatsapp"></i> Checkout on WhatsApp
           </button>
         </form>
       </aside>
