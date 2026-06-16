@@ -40,7 +40,7 @@ export default function Cart({
 
         {cart.length === 0 ? (
           <p className="empty-cart">
-            Cart empty hai. Menu se juice add karein.
+            Your cart is empty. Please add items from the menu.
           </p>
         ) : (
           <div className="cart-items">
