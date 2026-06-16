@@ -189,104 +189,48 @@ export default function Admin() {
   };
 
   const toggleProductStatus = async (product) => {
-    setError('');
-    setNotice('');
-
     const nextStatus = product.active === false;
 
     setProducts((prev) =>
-      prev.map((item) => (item.id === product.id ? { ...item, active: nextStatus } : item))
+      prev.map((item) =>
+        item.id === product.id ? { ...item, active: nextStatus } : item
+      )
     );
 
     try {
-      const updatedProduct = {
-        ...product,
-        active: nextStatus,
-      };
-
+      const updatedProduct = { ...product, active: nextStatus };
       const next = await updateFirebaseProduct(product.id, updatedProduct);
 
       if (Array.isArray(next)) setProducts(next);
 
-      setNotice(
-        nextStatus
-          ? `"${product.name}" Active ho gaya. Website par show hoga.`
-          : `"${product.name}" Inactive ho gaya. Website se hide hoga.`
-      );
-
       window.dispatchEvent(new Event('kfj-products-updated'));
     } catch (err) {
-      setProducts((prev) =>
-        prev.map((item) =>
-          item.id === product.id ? { ...item, active: product.active !== false } : item
-        )
-      );
-
-      setError(err.message || 'Product status update nahi ho saka.');
+      setError(err.message || 'Status update failed');
     }
   };
 
   const del = async (id) => {
     if (!confirm('Delete this product?')) return;
 
-    setLoading(true);
-    setError('');
-    setNotice('');
-
-    try {
-      const next = await deleteFirebaseProduct(id);
-      setProducts(next);
-      setNotice('Product delete ho gaya.');
-      window.dispatchEvent(new Event('kfj-products-updated'));
-    } catch (err) {
-      setError(err.message || 'Delete failed.');
-    } finally {
-      setLoading(false);
-    }
+    const next = await deleteFirebaseProduct(id);
+    setProducts(next);
   };
 
   const approveReview = async (id) => {
-    setLoading(true);
-
-    try {
-      const next = await approveFirebaseReview(id);
-      setReviews(next);
-      setNotice('Review approved ho gaya.');
-    } catch (err) {
-      setError(err.message || 'Review approve nahi ho saka.');
-    } finally {
-      setLoading(false);
-    }
+    const next = await approveFirebaseReview(id);
+    setReviews(next);
   };
 
   const hideReview = async (id) => {
-    setLoading(true);
-
-    try {
-      const next = await hideFirebaseReview(id);
-      setReviews(next);
-      setNotice('Review pending mein move ho gaya.');
-    } catch (err) {
-      setError(err.message || 'Review hide nahi ho saka.');
-    } finally {
-      setLoading(false);
-    }
+    const next = await hideFirebaseReview(id);
+    setReviews(next);
   };
 
   const removeReview = async (id) => {
     if (!confirm('Delete this review?')) return;
 
-    setLoading(true);
-
-    try {
-      const next = await deleteFirebaseReview(id);
-      setReviews(next);
-      setNotice('Review delete ho gaya.');
-    } catch (err) {
-      setError(err.message || 'Review delete nahi ho saka.');
-    } finally {
-      setLoading(false);
-    }
+    const next = await deleteFirebaseReview(id);
+    setReviews(next);
   };
 
   const pendingReviews = reviews.filter((r) => r.status !== 'approved');
@@ -294,539 +238,94 @@ export default function Admin() {
   const activeProducts = products.filter((p) => p.active !== false);
   const inactiveProducts = products.filter((p) => p.active === false);
 
-  const totalRevenue = orders.reduce((sum, order) => sum + Number(order.total || 0), 0);
-  const totalOrders = orders.length;
-  const avgOrderValue = totalOrders ? totalRevenue / totalOrders : 0;
-
-  const customers = new Set(
-    orders.map((order) => order.customer?.phone || order.customer?.name).filter(Boolean)
-  ).size;
-
-  const monthlyRevenue = Array.from({ length: 12 }, (_, index) => ({
-    month: new Date(2026, index).toLocaleString('en-US', { month: 'short' }),
-    total: 0,
-  }));
-
-  orders.forEach((order) => {
-    const date = order.createdAt?.toDate?.() || new Date(order.createdAtText || Date.now());
-    const month = date.getMonth();
-
-    if (!Number.isNaN(month)) {
-      monthlyRevenue[month].total += Number(order.total || 0);
-    }
-  });
-
-  const maxMonthlyRevenue = Math.max(...monthlyRevenue.map((item) => item.total), 1);
-
-  const categorySales = {};
-
-  orders.forEach((order) => {
-    order.cart?.forEach((item) => {
-      const category = item.category || 'Other';
-
-      categorySales[category] = categorySales[category] || {
-        category,
-        total: 0,
-        count: 0,
-      };
-
-      categorySales[category].total += Number(item.price || 0) * Number(item.qty || 1);
-      categorySales[category].count += Number(item.qty || 1);
-    });
-  });
-
-  const categorySalesList = Object.values(categorySales)
-    .filter((item) => item.total > 0 || item.count > 0)
-    .sort((a, b) => b.total - a.total);
-
-  const topProducts = {};
-
-  orders.forEach((order) => {
-    order.cart?.forEach((item) => {
-      const key = item.id || item.name;
-      if (!key) return;
-
-      topProducts[key] = topProducts[key] || {
-        name: item.name || 'Unknown Product',
-        qty: 0,
-        revenue: 0,
-      };
-
-      topProducts[key].qty += Number(item.qty || 1);
-      topProducts[key].revenue += Number(item.price || 0) * Number(item.qty || 1);
-    });
-  });
-
-  const topProductsList = Object.values(topProducts)
-    .sort((a, b) => b.revenue - a.revenue)
-    .slice(0, 5);
-
   if (!authReady) {
-    return (
-      <main className="admin-page">
-        <div className="admin-login">
-          <h1>Loading...</h1>
-        </div>
-      </main>
-    );
+    return <h1>Loading...</h1>;
   }
 
   if (!user) {
     return (
-      <main className="admin-page admin-auth-page">
-        <form className="admin-login admin-card" onSubmit={login}>
-          <h1>Admin Panel</h1>
-          <small>KASHMIRI FRESH JUICES</small>
+      <form onSubmit={login}>
+        <h1>Admin Login</h1>
 
-          <input
-            type="email"
-            placeholder="Admin email"
-            value={email}
-            onChange={(e) => setEmail(e.target.value)}
-            required
-          />
+        <input value={email} onChange={(e) => setEmail(e.target.value)} placeholder="Email" />
+        <input value={password} onChange={(e) => setPassword(e.target.value)} placeholder="Password" type="password" />
 
-          <input
-            type="password"
-            placeholder="Admin password"
-            value={password}
-            onChange={(e) => setPassword(e.target.value)}
-            required
-          />
+        <button type="submit">Login</button>
 
-          {error && <p className="admin-error">{error}</p>}
-
-          <button className="whatsapp" type="submit" disabled={loading}>
-            {loading ? 'Checking...' : 'Login'}
-          </button>
-
-          <Link className="outline" to="/" onClick={logout}>
-            Back to Website
-          </Link>
-        </form>
-      </main>
+        {error && <p>{error}</p>}
+      </form>
     );
   }
 
   return (
-    <main className="admin-dashboard-page">
-      <aside className={`admin-sidebar ${sidebarOpen ? 'open' : ''}`}>
-        <div className="admin-sidebar-brand">
-          <img src="/logo.png" alt="Logo" />
-          <div>
-            <b>Kashmiri</b>
-            <small>Fresh Juices Admin</small>
-          </div>
-        </div>
+    <main>
+      <h1>Admin Panel</h1>
 
-        <button className={active === 'dashboard' ? 'active' : ''} onClick={() => openSection('dashboard')}>Dashboard</button>
-        <button className={active === 'analytics' ? 'active' : ''} onClick={() => openSection('analytics')}>Analytics</button>
-        <button className={active === 'addProduct' ? 'active' : ''} onClick={() => openSection('addProduct')}>Add New Product</button>
-        <button className={active === 'products' ? 'active' : ''} onClick={() => openSection('products')}>Products</button>
-        <button className={active === 'reviews' ? 'active' : ''} onClick={() => openSection('reviews')}>Reviews</button>
-        <button className={active === 'orders' ? 'active' : ''} onClick={() => openSection('orders')}>Orders</button>
+      {/* PRODUCT FORM */}
+      {active === 'addProduct' && (
+        <form onSubmit={submit}>
+          <h2>{editingId ? 'Edit Product' : 'Add Product'}</h2>
 
-        <div className="admin-sidebar-bottom">
-          <button onClick={logout}>Logout</button>
-        </div>
-      </aside>
+          <input
+            placeholder="Name"
+            value={form.name}
+            onChange={(e) => setForm({ ...form, name: e.target.value })}
+          />
 
-      {sidebarOpen && <div className="admin-sidebar-overlay" onClick={() => setSidebarOpen(false)} />}
+          <input
+            placeholder="Category"
+            value={form.category}
+            onChange={(e) => setForm({ ...form, category: e.target.value })}
+          />
 
-      <section className="admin-content">
-        <header className="admin-topbar">
-          <button className="admin-menu-btn" onClick={() => setSidebarOpen(true)}>☰</button>
+          <input
+            placeholder="Price"
+            type="number"
+            value={form.price}
+            onChange={(e) => setForm({ ...form, price: e.target.value })}
+          />
 
-          <div>
-            <h1>
-              {active === 'dashboard' && 'Dashboard'}
-              {active === 'analytics' && 'Analytics'}
-              {active === 'addProduct' && (editingId ? 'Edit Product' : 'Add New Product')}
-              {active === 'products' && 'Products'}
-              {active === 'reviews' && 'Reviews'}
-              {active === 'orders' && 'Orders'}
-            </h1>
-            <p>Logged in: {user.email}</p>
-          </div>
+          <input
+            placeholder="Description"
+            value={form.description}
+            onChange={(e) => setForm({ ...form, description: e.target.value })}
+          />
 
-          <Link className="outline" to="/" onClick={logout}>
-            Website
-          </Link>
-        </header>
+          <input
+            placeholder="Image URL"
+            value={form.image}
+            onChange={(e) => setForm({ ...form, image: e.target.value })}
+          />
 
-        {error && <p className="admin-error">{error}</p>}
-        {notice && <p className="admin-success">{notice}</p>}
+          {/* FILE UPLOAD */}
+          <input
+            type="file"
+            accept="image/*"
+            onChange={(e) => setImageFile(e.target.files?.[0] || null)}
+          />
 
-        {active === 'dashboard' && (
-          <>
-            <div className="admin-stats">
-              <div className="admin-stat-card"><span>Total Products</span><b>{products.length}</b></div>
-              <div className="admin-stat-card"><span>Active Products</span><b>{activeProducts.length}</b></div>
-              <div className="admin-stat-card"><span>Inactive Products</span><b>{inactiveProducts.length}</b></div>
-              <div className="admin-stat-card"><span>Total Orders</span><b>{orders.length}</b></div>
-              <div className="admin-stat-card"><span>Pending Reviews</span><b>{pendingReviews.length}</b></div>
-              <div className="admin-stat-card"><span>Approved Reviews</span><b>{approvedReviews.length}</b></div>
+          {/* ✅ IMAGE PREVIEW ADDED */}
+          {imageFile && (
+            <div style={{ marginTop: '10px' }}>
+              <img
+                src={URL.createObjectURL(imageFile)}
+                alt="preview"
+                style={{
+                  width: '140px',
+                  height: '140px',
+                  objectFit: 'cover',
+                  borderRadius: '10px',
+                  border: '1px solid #ccc',
+                }}
+              />
             </div>
+          )}
 
-            <div className="admin-card">
-              <div className="admin-card-head">
-                <h2>Quick Actions</h2>
-              </div>
-
-              <div className="admin-actions-grid">
-                <button className="whatsapp" onClick={() => setActive('addProduct')}>Add Product</button>
-                <button className="outline" onClick={loadAdminData} disabled={loading}>Refresh Data</button>
-                <button className="outline" onClick={seedProducts} disabled={loading}>Seed Default Products</button>
-              </div>
-            </div>
-          </>
-        )}
-
-        {active === 'analytics' && (
-          <section className="analytics-section">
-            <div className="analytics-grid">
-              <div className="analytics-card">
-                <span>Total Revenue</span>
-                <b>{formatPKR(totalRevenue)}</b>
-                <small>Pakistani Rupees</small>
-              </div>
-
-              <div className="analytics-card">
-                <span>Total Orders</span>
-                <b>{totalOrders}</b>
-                <small>All customer orders</small>
-              </div>
-
-              <div className="analytics-card">
-                <span>Avg Order Value</span>
-                <b>{formatPKR(avgOrderValue)}</b>
-                <small>Average sale per order</small>
-              </div>
-
-              <div className="analytics-card">
-                <span>Customers</span>
-                <b>{customers}</b>
-                <small>Unique customers</small>
-              </div>
-            </div>
-
-            <div className="analytics-layout">
-              <div className="admin-card analytics-chart-card">
-                <div className="admin-card-head">
-                  <h2>Monthly Revenue</h2>
-                  <button className="outline" onClick={loadAdminData} disabled={loading}>Refresh</button>
-                </div>
-
-                <div className="analytics-bars">
-                  {monthlyRevenue.map((item) => (
-                    <div className="analytics-bar-item" key={item.month}>
-                      <div className="analytics-bar-track">
-                        <div
-                          className="analytics-bar-fill"
-                          style={{
-                            height: `${Math.max(
-                              (item.total / maxMonthlyRevenue) * 100,
-                              item.total ? 8 : 0
-                            )}%`,
-                          }}
-                        />
-                      </div>
-                      <span>{item.month}</span>
-                      <small>{formatPKR(item.total)}</small>
-                    </div>
-                  ))}
-                </div>
-              </div>
-
-              <div className="admin-card analytics-list-card">
-                <h2>Sales by Category</h2>
-
-                {categorySalesList.length === 0 ? (
-                  <p>No category sales yet.</p>
-                ) : (
-                  categorySalesList.map((item) => (
-                    <div className="analytics-row" key={item.category}>
-                      <div>
-                        <b>{item.category}</b>
-                        <span>{item.count} items sold</span>
-                      </div>
-                      <strong>{formatPKR(item.total)}</strong>
-                    </div>
-                  ))
-                )}
-              </div>
-            </div>
-
-            <div className="admin-card analytics-list-card">
-              <h2>Top Products</h2>
-
-              {topProductsList.length === 0 ? (
-                <p>No product sales yet.</p>
-              ) : (
-                topProductsList.map((item, index) => (
-                  <div className="analytics-row" key={item.name}>
-                    <div>
-                      <b>#{index + 1} {item.name}</b>
-                      <span>{item.qty} sold</span>
-                    </div>
-                    <strong>{formatPKR(item.revenue)}</strong>
-                  </div>
-                ))
-              )}
-            </div>
-
-            <div className="admin-card analytics-list-card">
-              <div className="admin-card-head">
-                <h2>Recent Orders</h2>
-                <button className="outline" onClick={() => setActive('orders')}>View All</button>
-              </div>
-
-              {orders.length === 0 ? (
-                <p>No recent orders yet.</p>
-              ) : (
-                orders.slice(0, 5).map((order) => (
-                  <div className="analytics-row" key={order.id}>
-                    <div>
-                      <b>{order.customer?.name || 'Unknown Customer'}</b>
-                      <span>{order.createdAtText || 'Firebase timestamp'}</span>
-                    </div>
-                    <strong>{formatPKR(order.total || 0)}</strong>
-                  </div>
-                ))
-              )}
-            </div>
-          </section>
-        )}
-
-        {active === 'addProduct' && (
-          <form className="admin-card product-form" onSubmit={submit}>
-            <h2>{editingId ? 'Edit Product' : 'Add New Product'}</h2>
-
-            <input placeholder="Product Name" value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} required />
-
-            <select value={form.category} onChange={(e) => setForm({ ...form, category: e.target.value })} required>
-              <option value="">Select Category</option>
-              <option value="Special Juice">Special Juice</option>
-              <option value="Citrus Juice">Citrus Juice</option>
-              <option value="Fresh Juice">Fresh Juice</option>
-              <option value="Seasonal Juice">Seasonal Juice</option>
-              <option value="Smoothie">Smoothie</option>
-              <option value="Mint Juice">Mint Juice</option>
-            </select>
-
-            <input placeholder="Description" value={form.description} onChange={(e) => setForm({ ...form, description: e.target.value })} required />
-            <input type="number" placeholder="Price" value={form.price} onChange={(e) => setForm({ ...form, price: e.target.value })} required />
-            <input placeholder="Image URL. Optional if uploading file" value={form.image} onChange={(e) => setForm({ ...form, image: e.target.value })} />
-            <input type="file" accept="image/*" onChange={(e) => setImageFile(e.target.files?.[0] || null)} />
-            <input placeholder="Badge e.g. NEW, HOT, SALE" value={form.badge} onChange={(e) => setForm({ ...form, badge: e.target.value })} />
-
-            <label className="admin-toggle-row">
-              <span>
-                Product Status
-                <small>{form.active !== false ? 'Active' : 'Inactive'}</small>
-              </span>
-              <input type="checkbox" checked={form.active !== false} onChange={(e) => setForm({ ...form, active: e.target.checked })} />
-              <b></b>
-            </label>
-
-            <button className="whatsapp" type="submit" disabled={loading}>
-              {loading ? 'Saving...' : editingId ? 'Update Product' : 'Add Product'}
-            </button>
-
-            {editingId && (
-              <button type="button" className="outline" onClick={() => {
-                setEditingId(null);
-                setForm(emptyForm);
-                setImageFile(null);
-              }}>
-                Cancel Edit
-              </button>
-            )}
-          </form>
-        )}
-
-        {active === 'products' && (
-          <div className="admin-card">
-            <div className="admin-card-head">
-              <div>
-                <h2>Products</h2>
-                <p className="admin-mini-text">Active: {activeProducts.length} | Inactive: {inactiveProducts.length}</p>
-              </div>
-              <button className="whatsapp" onClick={() => setActive('addProduct')}>Add New</button>
-            </div>
-
-            {products.length === 0 ? (
-              <p>No products found.</p>
-            ) : (
-              <div className="admin-products-list">
-                {products.map((product) => (
-                  <div className={`admin-product ${product.active === false ? 'product-disabled' : ''}`} key={product.id}>
-                    <img src={product.image} alt={product.name} />
-
-                    <div>
-                      <b>{product.name}</b>
-                      <span>{product.category} | {formatPKR(product.price)}</span>
-                      <small>{product.badge}</small>
-                      <em className={product.active !== false ? 'status-active' : 'status-inactive'}>
-                        {product.active !== false ? 'Active' : 'Inactive'}
-                      </em>
-                    </div>
-
-                    <button
-                      type="button"
-                      className={`status-toggle ${product.active !== false ? 'is-active' : 'is-inactive'}`}
-                      onClick={() => toggleProductStatus(product)}
-                    >
-                      <span className="toggle-text off-text">OFF</span>
-                      <span className="toggle-knob"></span>
-                      <span className="toggle-text on-text">ON</span>
-                    </button>
-
-                    <button onClick={() => edit(product)}>Edit</button>
-                    <button onClick={() => del(product.id)}>Delete</button>
-                  </div>
-                ))}
-              </div>
-            )}
-          </div>
-        )}
-
-        {active === 'reviews' && (
-          <section className="reviews-admin admin-card">
-            <div className="reviews-admin-head">
-              <div>
-                <small>REVIEW MODERATION</small>
-                <h2>Customer Reviews</h2>
-              </div>
-              <button className="outline" onClick={loadAdminData} disabled={loading}>Refresh</button>
-            </div>
-
-            <div className="review-columns">
-              <div>
-                <h3>Pending Reviews ({pendingReviews.length})</h3>
-
-                {pendingReviews.length === 0 ? (
-                  <p>No pending reviews.</p>
-                ) : (
-                  pendingReviews.map((review) => (
-                    <div className="admin-review-card pending" key={review.id}>
-                      <div className="review-meta">
-                        <b>{review.name}</b>
-                        <span>{review.createdAtText || 'Firebase timestamp'}</span>
-                      </div>
-
-                      <div className="admin-stars">{'★'.repeat(Number(review.rating || 5))}</div>
-                      <p>{review.message}</p>
-
-                      <div className="review-actions">
-                        <button onClick={() => approveReview(review.id)}>Approve</button>
-                        <button className="danger" onClick={() => removeReview(review.id)}>Delete</button>
-                      </div>
-                    </div>
-                  ))
-                )}
-              </div>
-
-              <div>
-                <h3>Approved Reviews ({approvedReviews.length})</h3>
-
-                {approvedReviews.length === 0 ? (
-                  <p>No approved reviews yet.</p>
-                ) : (
-                  approvedReviews.map((review) => (
-                    <div className="admin-review-card approved" key={review.id}>
-                      <div className="review-meta">
-                        <b>{review.name}</b>
-                        <span>{review.createdAtText || 'Firebase timestamp'}</span>
-                      </div>
-
-                      <div className="admin-stars">{'★'.repeat(Number(review.rating || 5))}</div>
-                      <p>{review.message}</p>
-
-                      <div className="review-actions">
-                        <button onClick={() => hideReview(review.id)}>Move to Pending</button>
-                        <button className="danger" onClick={() => removeReview(review.id)}>Delete</button>
-                      </div>
-                    </div>
-                  ))
-                )}
-              </div>
-            </div>
-          </section>
-        )}
-
-        {active === 'orders' && (
-          <section className="orders admin-card">
-            <div className="admin-card-head">
-              <h2>Recent Orders</h2>
-              <button className="outline" onClick={loadAdminData} disabled={loading}>Refresh</button>
-            </div>
-
-            {orders.length === 0 ? (
-              <p>No orders yet.</p>
-            ) : (
-              <div className="orders-list">
-                {orders.map((order) => {
-                  const isOpen = openOrderId === order.id;
-
-                  return (
-                    <div className="order-card order-accordion-card" key={order.id}>
-                      <button
-                        type="button"
-                        className="order-summary-row"
-                        onClick={() => setOpenOrderId(isOpen ? null : order.id)}
-                      >
-                        <div>
-                          <b>{order.customer?.name || 'Unknown Customer'}</b>
-                          <span>{order.createdAtText || 'Firebase timestamp'}</span>
-                        </div>
-
-                        <div>
-                          <p>{order.customer?.phone || 'N/A'}</p>
-                          <strong>{formatPKR(order.total || 0)}</strong>
-                        </div>
-
-                        <i>{isOpen ? '▲' : '▼'}</i>
-                      </button>
-
-                      {isOpen && (
-                        <div className="order-detail-panel">
-                          <div className="order-customer-info">
-                            <p><b>Name:</b> {order.customer?.name || 'N/A'}</p>
-                            <p><b>Phone:</b> {order.customer?.phone || 'N/A'}</p>
-                            <p><b>Address:</b> {order.customer?.address || 'N/A'}</p>
-                          </div>
-
-                          <div className="order-items">
-                            <h4>Order Items</h4>
-
-                            {order.cart?.length ? (
-                              order.cart.map((item, index) => (
-                                <div className="order-item-row" key={`${order.id}-${item.id || index}`}>
-                                  <img src={item.image || mangoFallback} alt={item.name || 'Product'} />
-
-                                  <div>
-                                    <b>{item.name || 'Unknown Product'}</b>
-                                    <span>Qty: {item.qty || 1} × {formatPKR(item.price || 0)}</span>
-                                  </div>
-
-                                  <strong>{formatPKR(Number(item.price || 0) * Number(item.qty || 1))}</strong>
-                                </div>
-                              ))
-                            ) : (
-                              <p>No item detail found.</p>
-                            )}
-                          </div>
-                        </div>
-                      )}
-                    </div>
-                  );
-                })}
-              </div>
-            )}
-          </section>
-        )}
-      </section>
+          <button type="submit">
+            {editingId ? 'Update' : 'Add'}
+          </button>
+        </form>
+      )}
     </main>
   );
 }
