@@ -42,7 +42,7 @@ export default function Testimonials() {
     try {
       await submitFirebaseReview(form);
       setForm({ name: '', rating: 5, message: '' });
-      setNotice('Review submit ho gaya. Admin approve karega phir website par show hoga.');
+      setNotice('The review is successfully submitted.');
     } catch (err) {
       setError(err.message || 'Review submit nahi ho saka.');
     } finally {
