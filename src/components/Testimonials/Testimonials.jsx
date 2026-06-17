@@ -44,7 +44,7 @@ export default function Testimonials() {
       setForm({ name: '', rating: 5, message: '' });
       setNotice('The review is successfully submitted.');
     } catch (err) {
-      setError(err.message || 'Review submit nahi ho saka.');
+      setError(err.message || 'Unable to submit the review.');
     } finally {
       setLoading(false);
     }
