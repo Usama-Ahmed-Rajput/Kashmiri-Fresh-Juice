@@ -86,11 +86,11 @@ export default function Testimonials() {
             value={form.rating}
             onChange={(e) => setForm({ ...form, rating: Number(e.target.value) })}
           >
-            <option value="5">5 Stars</option>
-            <option value="4">4 Stars</option>
-            <option value="3">3 Stars</option>
-            <option value="2">2 Stars</option>
-            <option value="1">1 Star</option>
+            <option value="5">⭐⭐⭐⭐⭐</option>
+            <option value="4">⭐⭐⭐⭐</option>
+            <option value="3">⭐⭐⭐</option>
+            <option value="2">⭐⭐</option>
+            <option value="1">⭐</option>
           </select>
         </div>
 
